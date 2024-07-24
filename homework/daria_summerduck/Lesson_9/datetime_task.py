@@ -16,4 +16,3 @@ date = datetime.datetime.strptime(date, "%b %d, %Y - %H:%M:%S")
 
 print(date.strftime("%B"))
 print(date.strftime("%d.%m.%Y, %H:%M"))
-git
