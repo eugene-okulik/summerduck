@@ -1,5 +1,6 @@
 from decorators import timer
 
+
 @timer
 class TimeWaster:
     def __init__(self, max_num):
@@ -8,6 +9,7 @@ class TimeWaster:
     def waste_time(self, num_times):
         for _ in range(num_times):
             sum([i**2 for i in range(self.max_num)])
+
 
 """
 >>> tw = TimeWaster(1000)

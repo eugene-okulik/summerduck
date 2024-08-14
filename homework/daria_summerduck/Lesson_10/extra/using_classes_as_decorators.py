@@ -1,5 +1,6 @@
 from decorators import CountCalls
 
+
 @CountCalls
 def say_whee():
     print("Whee!")

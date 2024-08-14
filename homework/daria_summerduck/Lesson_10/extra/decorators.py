@@ -3,6 +3,7 @@ import time
 
 PLUGINS = dict()
 
+
 def do_twice(func):
     @functools.wraps(func)
     def wrapper_do_twice(*args, **kwargs):
@@ -11,13 +12,16 @@ def do_twice(func):
 
     return wrapper_do_twice
 
+
 def log_func_name(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         value = func(*args, **kwargs)
         print("func_name: " + func.__name__)
         return value
+
     return wrapper
+
 
 def timer(func):
     """Print the runtime of the decorated function"""
