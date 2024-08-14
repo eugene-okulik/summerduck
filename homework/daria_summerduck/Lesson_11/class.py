@@ -26,7 +26,8 @@
 ** Второй класс **
 Создайте дочерний класс для первого. Это будет класс для школьных учебников. В нем будут дополнительные атрибуты:
 - предмет (типа математика, история, география)
-- класс (школьный класс, для которого этот учебник) (осторожно с названием переменной. `class` - зарезервированное слово)
+- класс (школьный класс, для которого этот учебник) 
+    (осторожно с названием переменной. `class` - зарезервированное слово)
 - наличие заданий (bool)
 
 ** Tasks **
@@ -53,7 +54,12 @@ class Book:
 
     def __str__(self):
         reserved_status = "зарезервирована" if self.reserved else ""
-        return f"Название: {self.title}, Автор: {self.author}, страниц: {self.pages}, материал: {self.material} {reserved_status}".strip()
+        return (
+            f"Название: {self.title}, "
+            f"Автор: {self.author}, "
+            f"страниц: {self.pages}, "
+            f"материал: {self.material} {reserved_status}".strip()
+        )
 
 
 class Textbook(Book):
@@ -75,7 +81,13 @@ class Textbook(Book):
 
     def __str__(self):
         reserved_status = "зарезервирована" if self.reserved else ""
-        return f"Название: {self.title}, Автор: {self.author}, страниц: {self.pages}, предмет: {self.subject}, класс: {self.grade} {reserved_status}".strip()
+        return (
+            f"Название: {self.title}, "
+            f"Автор: {self.author}, "
+            f"страниц: {self.pages}, "
+            f"предмет: {self.subject}, "
+            f"класс: {self.grade} {reserved_status}".strip()
+        )
 
 
 # Создание экземпляров книг
