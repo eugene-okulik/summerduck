@@ -20,14 +20,29 @@
 Ну и так далее для каждой даты.
 """
 
+from datetime import datetime, timedelta
+
+
 file_path = r"homework/eugene_okulik/hw_13/data.txt"
 
 
-# def read_file(file_path):
-#     with open(file_path, "r") as data_file:
-#         for line in data_file.readlines():
-#             yield line
+def process_dates_from_file(file_path):
+    with open(file_path, "r", encoding="utf-8") as file:
+        for line in file.readlines():
+            number, date_task = line.split(". ", 1)
+            date, action = date_task.split(" - ", 1)
+            date = datetime.strptime(date, "%Y-%m-%d %H:%M:%S.%f")
+
+            print(f"\nСтрока {number} \n" f"{line}", end="")
+            if "распечатать эту дату, но на неделю позже" in action:
+                new_date = date + timedelta(weeks=1)
+                print(f"Дата на неделю позже: {new_date}")
+            elif "распечатать какой это будет день недели" in action:
+                weekday = date.strftime("%A")
+                print(f"День недели: {weekday}")
+            elif "распечатать сколько дней назад была эта дата" in action:
+                days_ago = (datetime.now() - date).days
+                print(f"\nЭта дата была {days_ago} дней назад")
 
 
-with open(file_path) as file:
-    print(file.read())
+process_dates_from_file(file_path)
