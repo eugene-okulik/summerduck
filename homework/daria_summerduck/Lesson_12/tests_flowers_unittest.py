@@ -1,5 +1,5 @@
 import unittest
-from i_can_buy_myself_flowers import *
+from i_can_buy_myself_flowers import Flower, Bouquet, Rose, Lily
 
 
 class TestFlower(unittest.TestCase):

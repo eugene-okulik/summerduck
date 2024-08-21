@@ -27,7 +27,10 @@ class Flower:
         self.lifespan = int(int(self.freshness) * 0.01 * lifespan)
 
     def __repr__(self):
-        return f"\n{self.name}(Color: {self.color}, Stem Length: {self.stem_length}cm, Freshness: {self.freshness}%, Cost: {self.cost}$, Lifespan: {self.lifespan} days)"
+        return (
+            f"\n{self.name}(Color: {self.color}, Stem Length: {self.stem_length}cm, "
+            f"Freshness: {self.freshness}%, Cost: {self.cost}$, Lifespan: {self.lifespan} days)"
+        )
 
 
 class Rose(Flower):
