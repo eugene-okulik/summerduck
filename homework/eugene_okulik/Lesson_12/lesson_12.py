@@ -5,8 +5,8 @@ class CountryData:
     def __init__(self, filename):
         self.__filename = filename
         self.__data = self.__read_file()
-        self.__country = self.__data['Country']
-        self.__avg_temp = self.__data['avg_temp']
+        self.__country = self.__data["Country"]
+        self.__avg_temp = self.__data["avg_temp"]
         self._comfort = self.__is_comfort()
 
     @property
@@ -30,7 +30,7 @@ class CountryData:
         self._comfort = value
 
     def __read_file(self):
-        file_data = open(self.__filename, 'r')
+        file_data = open(self.__filename, "r")
         data = json.load(file_data)
         file_data.close()
         return data
@@ -39,7 +39,7 @@ class CountryData:
         return self.__avg_temp > 25
 
 
-data1 = CountryData('data1.txt')
+data1 = CountryData("data1.txt")
 data1.comfort = False
 print(data1.comfort)
 # data1.data = 'skdfjhskdjf'
@@ -48,7 +48,7 @@ print(data1.data)
 print(data1.data)
 print(data1.country)
 # print(data1.avg_temp)
-data2 = CountryData('data2.txt')
+data2 = CountryData("data2.txt")
 print(data2.country)
 data1.__avg_temp = 2342342
 print(data1.avg_temp)
