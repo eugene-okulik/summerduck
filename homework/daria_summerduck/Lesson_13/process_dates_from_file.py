@@ -20,10 +20,17 @@
 Ну и так далее для каждой даты.
 """
 
+import os
 from datetime import datetime, timedelta
 
 
-file_path = r"homework/eugene_okulik/hw_13/data.txt"
+# file_path = r"homework/eugene_okulik/hw_13/data.txt"
+data_path = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+    "eugene_okulik",
+    "hw_13",
+    "data.txt",
+)
 
 
 def process_dates_from_file(file_path):
@@ -45,4 +52,4 @@ def process_dates_from_file(file_path):
                 print(f"\nЭта дата была {days_ago} дней назад")
 
 
-process_dates_from_file(file_path)
+process_dates_from_file(data_path)
