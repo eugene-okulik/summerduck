@@ -59,7 +59,7 @@ def create_student(
 
 
 @utils.handle_db_exceptions
-def select_student_by_id(student_id: str):
+def select_student_by_id(student_id: int):
     # Validate ID
     utils.validate_id(student_id)
 
@@ -89,7 +89,7 @@ def create_book(
 
 
 @utils.handle_db_exceptions
-def select_book_by_id(book_id: str):
+def select_book_by_id(book_id: int):
     # Validate ID
     utils.validate_id(book_id)
 
@@ -103,8 +103,8 @@ def select_book_by_id(book_id: str):
 
 @utils.handle_db_exceptions
 def assigne_student_to_book(
-    student_id: str,
-    book_id: str,
+    student_id: int,
+    book_id: int,
 ) -> None:
     # Validate IDs
     utils.validate_id(book_id)
@@ -141,7 +141,7 @@ def create_group(
 
 
 @utils.handle_db_exceptions
-def select_group_by_id(group_id: str):
+def select_group_by_id(group_id: int):
     # Validate ID
     utils.validate_id(group_id)
 
@@ -156,8 +156,8 @@ def select_group_by_id(group_id: str):
 
 @utils.handle_db_exceptions
 def assigne_group_to_student(
-    group_id: str,
-    student_id: str,
+    group_id: int,
+    student_id: int,
 ):
     # Validate IDs
     utils.validate_id(group_id)
@@ -192,7 +192,7 @@ def create_subject(
 
 
 @utils.handle_db_exceptions
-def select_subject_by_id(subject_id: str):
+def select_subject_by_id(subject_id: int):
     # Validate ID
     utils.validate_id(subject_id)
 
@@ -207,7 +207,7 @@ def select_subject_by_id(subject_id: str):
 
 @utils.handle_db_exceptions
 def create_lesson(
-    subject_id: str,
+    subject_id: int,
     title: str,
 ):
     # Validate ID
@@ -229,7 +229,7 @@ def create_lesson(
 
 
 @utils.handle_db_exceptions
-def select_lesson_by_id(lesson_id: str):
+def select_lesson_by_id(lesson_id: int):
     # Validate ID
     utils.validate_id(lesson_id)
 
@@ -244,8 +244,8 @@ def select_lesson_by_id(lesson_id: str):
 
 @utils.handle_db_exceptions
 def add_mark_to_lesson(
-    lesson_id: str,
-    student_id: str,
+    lesson_id: int,
+    student_id: int,
     value: str,
 ):
     # Validate IDs
@@ -269,7 +269,7 @@ def add_mark_to_lesson(
 
 
 @utils.handle_db_exceptions
-def get_all_marks_for_student(student_id: str) -> list:
+def get_all_marks_for_student(student_id: int) -> list:
     # Validate ID
     utils.validate_id(student_id)
 
@@ -283,7 +283,7 @@ def get_all_marks_for_student(student_id: str) -> list:
 
 
 @utils.handle_db_exceptions
-def get_all_books_for_student(student_id: str) -> list:
+def get_all_books_for_student(student_id: int) -> list:
     # Validate ID
     utils.validate_id(student_id)
 
@@ -297,7 +297,7 @@ def get_all_books_for_student(student_id: str) -> list:
 
 
 @utils.handle_db_exceptions
-def get_student_details(student_id: str):
+def get_student_details(student_id: int):
     """
     Retrieve all available information about a student from the database:
     group, books, grades with the names of lessons and subjects
@@ -339,9 +339,15 @@ def close_connection():
 
 # Commit the changes
 def commit_changes():
-    if db.is_connected():
+    try:
         db.commit()
         logging.info("Changes committed successfully")
+    except mysql.Error as e:
+        logging.error(f"Error committing changes: {e}")
+        db.rollback()
+        raise
+    finally:
+        close_connection()
 
 
 # Create a student
