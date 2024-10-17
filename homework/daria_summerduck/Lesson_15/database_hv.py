@@ -1,6 +1,7 @@
 import logging
 import mysql.connector as mysql
 from utilities import utils
+from test_data import RandomData as Random
 
 # Configure logging
 logging.basicConfig(
@@ -336,9 +337,17 @@ def close_connection():
         logging.info("Database connection closed.")
 
 
+# Commit the changes
+def commit_changes():
+    if db.is_connected():
+        db.commit()
+        logging.info("Changes committed successfully")
+
+
 # Create a student
-random_name = utils.generate_random_names()
-student_id = create_student(random_name.first_name, random_name.last_name)
+first_name = Random.first_name()
+last_name = Random.last_name()
+student_id = create_student(first_name, last_name)
 
 # Verify the student is created
 student_data = select_student_by_id(student_id)
@@ -349,7 +358,7 @@ assert (
 ), "Student should not be assigned to any group initially"
 
 # Create a book
-book_title = utils.generate_random_book_title()
+book_title = Random.book_title()
 book_id = create_book(book_title)
 
 # Verify the book is created
@@ -370,9 +379,9 @@ assert (
 ), "Book should be assigned to the student now"
 
 # Create a group
-group_title = utils.generate_random_group_title()
-random_date = utils.generate_random_dates()
-group_id = create_group(group_title, random_date.start_date, random_date.end_date)
+group_title = Random.group_title()
+date = Random.start_and_end_dates()
+group_id = create_group(group_title, date.start_date, date.end_date)
 
 # Verify the group is created
 group_info = select_group_by_id(group_id)
@@ -388,21 +397,21 @@ assert (
 logging.info(f"PASSED: Student '{student_id}' is assigned to the group '{group_id}'")
 
 # Create a subject
-subject_title = utils.generate_random_subject_title()
+subject_title = Random.subject_title()
 subject_id = create_subject(subject_title)
 
 # Verify the subject is created
 subject_info = select_subject_by_id(subject_id)
 
 # Create lessons for the subject
-lesson_title = utils.generate_random_lesson_title(subject_title)
+lesson_title = Random.lesson_title(subject_title)
 lesson_id = create_lesson(subject_id, lesson_title)
 
 # Verify the lesson is created
 lesson_info = select_lesson_by_id(lesson_id)
 
 # Add a mark to the lesson
-mark_value = utils.generate_random_mark()
+mark_value = Random.mark()
 add_mark_to_lesson(lesson_id, student_id, mark_value)
 
 # Verify the mark is added to the lesson
@@ -420,10 +429,8 @@ logging.info(f"PASSED: Book '{book_title}' is assigned to the student '{student_
 # Get all details for the student
 student_details = get_student_details(student_id)
 assert len(student_details) == 1, "There should be only one student details"
-assert student_details[0]["name"] == random_name.first_name, "Name should be the same"
-assert (
-    student_details[0]["second_name"] == random_name.last_name
-), "Second name should be the same"
+assert student_details[0]["name"] == first_name, "Name should be the same"
+assert student_details[0]["second_name"] == last_name, "Second name should be the same"
 assert (
     student_details[0]["group_title"] == group_title
 ), "Group title should be the same"
@@ -438,8 +445,7 @@ assert (
 logging.info("PASSED: Student details are retrieved successfully")
 
 # Commit the changes
-db.commit()
-logging.info("Changes committed successfully")
+commit_changes()
 
 # Close the database connection
 close_connection()

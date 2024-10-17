@@ -42,3 +42,93 @@
 2024-10-17 22:31:15,241 - INFO - PASSED: Student details are retrieved successfully
 2024-10-17 22:31:15,301 - INFO - Changes committed successfully
 2024-10-17 22:31:15,363 - INFO - Database connection closed.
+2024-10-17 22:56:40,909 - INFO - Successfully connected to the database.
+2024-10-17 22:56:41,027 - INFO - Student 'Daria Springbreeze' created
+2024-10-17 22:56:41,138 - INFO - Database connection closed.
+2024-10-17 22:58:35,443 - INFO - Successfully connected to the database.
+2024-10-17 22:58:44,348 - INFO - Successfully connected to the database.
+2024-10-17 22:58:44,462 - INFO - Student 'Eugene Springbreeze' created
+2024-10-17 22:58:44,575 - INFO - Database connection closed.
+2024-10-17 22:59:27,446 - INFO - Successfully connected to the database.
+2024-10-17 22:59:27,561 - INFO - Student 'Maria Autumnleaf' created
+2024-10-17 22:59:27,675 - INFO - Database connection closed.
+2024-10-17 23:02:40,932 - INFO - Successfully connected to the database.
+2024-10-17 23:02:41,046 - INFO - Student 'Alex Autumnleaf' created
+2024-10-17 23:02:41,159 - INFO - Book 'The Lost Forest and the Forest' created
+2024-10-17 23:02:41,279 - INFO - Student '3372' assigned to book '4633'
+2024-10-17 23:02:41,391 - INFO - Database connection closed.
+2024-10-17 23:13:29,965 - INFO - Successfully connected to the database.
+2024-10-17 23:13:30,076 - INFO - Student 'Alex Autumnleaf' created
+2024-10-17 23:13:30,190 - INFO - Book 'The Whispering Forest of the Legacy' created
+2024-10-17 23:13:30,300 - INFO - Student '3373' assigned to book '4634'
+2024-10-17 23:13:30,413 - INFO - Group 'Dynamic Developers Network' created
+2024-10-17 23:13:30,527 - INFO - Student 3373 assigned to group '2078'
+2024-10-17 23:13:30,582 - INFO - PASSED: Student '3373' is assigned to the group '2078'
+2024-10-17 23:13:30,641 - INFO - Subject 'Applications of Mathematics' created
+2024-10-17 23:13:30,751 - INFO - Lesson 'Challenges in Applications of Mathematics' created
+2024-10-17 23:13:30,862 - INFO - Mark 'F' added to lesson '5974' and student '3373'
+2024-10-17 23:13:30,917 - INFO - PASSED: Mark 'F' is added to the lesson '5974'
+2024-10-17 23:13:30,972 - INFO - PASSED: Book 'The Whispering Forest of the Legacy' is assigned to the student '3373'
+2024-10-17 23:13:31,027 - INFO - PASSED: Student details are retrieved successfully
+2024-10-17 23:13:31,082 - INFO - Changes committed successfully
+2024-10-17 23:13:31,138 - INFO - Database connection closed.
+2024-10-17 23:14:53,152 - INFO - Successfully connected to the database.
+2024-10-17 23:14:53,274 - INFO - Student 'Alex Autumnleaf' created
+2024-10-17 23:14:53,392 - INFO - Book 'The Enchanted Ocean of the Forest' created
+2024-10-17 23:14:53,509 - INFO - Student '3374' assigned to book '4635'
+2024-10-17 23:14:53,625 - INFO - Group 'Elite Engineers Network' created
+2024-10-17 23:14:53,740 - INFO - Student 3374 assigned to group '2079'
+2024-10-17 23:14:53,798 - INFO - PASSED: Student '3374' is assigned to the group '2079'
+2024-10-17 23:14:53,857 - INFO - Subject 'Theory of History' created
+2024-10-17 23:14:53,972 - INFO - Lesson 'Key Concepts in Theory of History' created
+2024-10-17 23:14:54,090 - INFO - Mark 'F' added to lesson '5975' and student '3374'
+2024-10-17 23:14:54,149 - INFO - PASSED: Mark 'F' is added to the lesson '5975'
+2024-10-17 23:14:54,208 - INFO - PASSED: Book 'The Enchanted Ocean of the Forest' is assigned to the student '3374'
+2024-10-17 23:14:54,268 - INFO - PASSED: Student details are retrieved successfully
+2024-10-17 23:14:54,385 - INFO - Changes committed successfully
+2024-10-17 23:14:54,443 - INFO - Database connection closed.
+2024-10-17 23:17:42,257 - INFO - Successfully connected to the database.
+2024-10-17 23:17:42,366 - INFO - Student 'John Snowfall' created
+2024-10-17 23:17:42,478 - INFO - Book 'The Whispering Ocean in the Secret' created
+2024-10-17 23:17:42,588 - INFO - Student '3375' assigned to book '4636'
+2024-10-17 23:17:42,699 - INFO - Group 'Elite Designers Alliance' created
+2024-10-17 23:17:42,811 - INFO - Student 3375 assigned to group '2080'
+2024-10-17 23:17:42,865 - INFO - PASSED: Student '3375' is assigned to the group '2080'
+2024-10-17 23:17:42,919 - INFO - Subject 'Introduction of History' created
+2024-10-17 23:17:43,028 - INFO - Lesson 'Case Studies in Introduction of History' created
+2024-10-17 23:17:43,139 - INFO - Mark 'B' added to lesson '5976' and student '3375'
+2024-10-17 23:17:43,194 - INFO - PASSED: Mark 'B' is added to the lesson '5976'
+2024-10-17 23:17:43,249 - INFO - PASSED: Book 'The Whispering Ocean in the Secret' is assigned to the student '3375'
+2024-10-17 23:17:43,307 - INFO - PASSED: Student details are retrieved successfully
+2024-10-17 23:17:43,414 - INFO - Changes committed successfully
+2024-10-17 23:17:43,469 - INFO - Database connection closed.
+2024-10-17 23:18:26,636 - INFO - Successfully connected to the database.
+2024-10-17 23:18:26,752 - INFO - Student 'John Snowfall' created
+2024-10-17 23:18:26,871 - INFO - Book 'The Enchanted Legacy of the Ocean' created
+2024-10-17 23:18:26,986 - INFO - Student '3376' assigned to book '4637'
+2024-10-17 23:18:27,103 - INFO - Group 'Advanced Thinkers Squad' created
+2024-10-17 23:18:27,216 - INFO - Student 3376 assigned to group '2081'
+2024-10-17 23:18:27,278 - INFO - PASSED: Student '3376' is assigned to the group '2081'
+2024-10-17 23:18:27,334 - INFO - Subject 'Principles of Physics' created
+2024-10-17 23:18:27,449 - INFO - Lesson 'Applications in Principles of Physics' created
+2024-10-17 23:18:27,563 - INFO - Mark 'A' added to lesson '5977' and student '3376'
+2024-10-17 23:18:27,629 - INFO - PASSED: Mark 'A' is added to the lesson '5977'
+2024-10-17 23:18:27,685 - INFO - PASSED: Book 'The Enchanted Legacy of the Ocean' is assigned to the student '3376'
+2024-10-17 23:18:27,748 - INFO - PASSED: Student details are retrieved successfully
+2024-10-17 23:18:27,863 - INFO - Changes committed successfully
+2024-10-17 23:18:27,922 - INFO - Database connection closed.
+2024-10-17 23:25:16,619 - INFO - Successfully connected to the database.
+2024-10-17 23:25:16,732 - INFO - Student 'Alex Snowfall' created
+2024-10-17 23:25:16,853 - INFO - Book 'The Whispering Forest to the Forest' created
+2024-10-17 23:25:16,971 - INFO - Student '3377' assigned to book '4638'
+2024-10-17 23:25:17,088 - INFO - Group 'Innovative Developers Alliance' created
+2024-10-17 23:25:17,199 - INFO - Student 3377 assigned to group '2082'
+2024-10-17 23:25:17,254 - INFO - PASSED: Student '3377' is assigned to the group '2082'
+2024-10-17 23:25:17,309 - INFO - Subject 'Principles of History' created
+2024-10-17 23:25:17,419 - INFO - Lesson 'Challenges in Principles of History' created
+2024-10-17 23:25:17,532 - INFO - Mark 'A' added to lesson '5978' and student '3377'
+2024-10-17 23:25:17,588 - INFO - PASSED: Mark 'A' is added to the lesson '5978'
+2024-10-17 23:25:17,643 - INFO - PASSED: Book 'The Whispering Forest to the Forest' is assigned to the student '3377'
+2024-10-17 23:25:17,700 - INFO - PASSED: Student details are retrieved successfully
+2024-10-17 23:25:17,809 - INFO - Changes committed successfully
+2024-10-17 23:25:17,866 - INFO - Database connection closed.
