@@ -1,0 +1,44 @@
+2024-10-17 22:27:17,046 - INFO - Successfully connected to the database.
+2024-10-17 22:29:37,256 - INFO - Successfully connected to the database.
+2024-10-17 22:29:37,372 - INFO - Student 'Maria Snowfall' created
+2024-10-17 22:29:37,541 - INFO - Book 'The Enchanted Legacy and the Secret' created
+2024-10-17 22:29:37,726 - INFO - Student '3351' assigned to book '4627'
+2024-10-17 22:29:37,840 - INFO - Group 'Creative Designers Squad' created
+2024-10-17 22:29:37,954 - INFO - Student 3351 assigned to group '2072'
+2024-10-17 22:29:38,011 - INFO - PASSED: Student '3351' is assigned to the group '2072'
+2024-10-17 22:29:38,071 - INFO - Subject 'Principles of Mathematics' created
+2024-10-17 22:29:38,250 - INFO - Lesson 'Applications in Principles of Mathematics' created
+2024-10-17 22:29:38,372 - INFO - Mark 'F' added to lesson '5967' and student '3351'
+2024-10-17 22:29:38,430 - INFO - PASSED: Mark 'F' is added to the lesson '5967'
+2024-10-17 22:29:38,488 - INFO - PASSED: Book 'The Enchanted Legacy and the Secret' is assigned to the student '3351'
+2024-10-17 22:29:38,548 - INFO - PASSED: Student details are retrieved successfully
+2024-10-17 22:30:04,095 - INFO - Successfully connected to the database.
+2024-10-17 22:30:04,254 - INFO - Student 'Alex Winterfox' created
+2024-10-17 22:30:04,523 - INFO - Book 'The Whispering Castle of the Journey' created
+2024-10-17 22:30:04,666 - INFO - Student '3352' assigned to book '4628'
+2024-10-17 22:30:04,988 - INFO - Group 'Creative Creators Team' created
+2024-10-17 22:30:05,120 - INFO - Student 3352 assigned to group '2073'
+2024-10-17 22:30:05,186 - INFO - PASSED: Student '3352' is assigned to the group '2073'
+2024-10-17 22:30:05,246 - INFO - Subject 'Theory of Philosophy' created
+2024-10-17 22:30:05,514 - INFO - Lesson 'Case Studies in Theory of Philosophy' created
+2024-10-17 22:30:05,666 - INFO - Mark 'D' added to lesson '5968' and student '3352'
+2024-10-17 22:30:05,735 - INFO - PASSED: Mark 'D' is added to the lesson '5968'
+2024-10-17 22:30:05,800 - INFO - PASSED: Book 'The Whispering Castle of the Journey' is assigned to the student '3352'
+2024-10-17 22:30:05,868 - INFO - PASSED: Student details are retrieved successfully
+2024-10-17 22:30:05,927 - INFO - Changes committed successfully
+2024-10-17 22:30:05,927 - INFO - Successfully closed the database connection
+2024-10-17 22:31:13,952 - INFO - Successfully connected to the database.
+2024-10-17 22:31:14,076 - INFO - Student 'Eugene Springbreeze' created
+2024-10-17 22:31:14,255 - INFO - Book 'The Forgotten Forest of the Journey' created
+2024-10-17 22:31:14,372 - INFO - Student '3354' assigned to book '4629'
+2024-10-17 22:31:14,490 - INFO - Group 'Advanced Strategists Network' created
+2024-10-17 22:31:14,609 - INFO - Student 3354 assigned to group '2074'
+2024-10-17 22:31:14,719 - INFO - PASSED: Student '3354' is assigned to the group '2074'
+2024-10-17 22:31:14,779 - INFO - Subject 'Foundations of Philosophy' created
+2024-10-17 22:31:14,901 - INFO - Lesson 'Overview in Foundations of Philosophy' created
+2024-10-17 22:31:15,022 - INFO - Mark 'A' added to lesson '5969' and student '3354'
+2024-10-17 22:31:15,082 - INFO - PASSED: Mark 'A' is added to the lesson '5969'
+2024-10-17 22:31:15,142 - INFO - PASSED: Book 'The Forgotten Forest of the Journey' is assigned to the student '3354'
+2024-10-17 22:31:15,241 - INFO - PASSED: Student details are retrieved successfully
+2024-10-17 22:31:15,301 - INFO - Changes committed successfully
+2024-10-17 22:31:15,363 - INFO - Database connection closed.

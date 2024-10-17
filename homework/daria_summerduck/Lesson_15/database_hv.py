@@ -1,332 +1,311 @@
+import logging
 import mysql.connector as mysql
-import random
-from typing import Optional
-from datetime import datetime, timedelta
-from dataclasses import dataclass
-from test_data import RandomData
+from utilities import utils
 
-
-# Dataclasses for storing random data
-@dataclass
-class RandomName:
-    first_name: str
-    last_name: str
-
-
-@dataclass
-class DateRange:
-    start_date: str
-    end_date: str
-
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,  # Log level, can be DEBUG, INFO, WARNING, ERROR, CRITICAL
+    format="%(asctime)s - %(levelname)s - %(message)s",  # Log format
+    handlers=[
+        logging.FileHandler("app.log"),  # Write logs to a file
+        logging.StreamHandler(),  # Output logs to the console
+    ],
+)
 
 # Connect to the database
-db = mysql.connect(
-    user="st-onl",
-    passwd="AVNS_tegPDkI5BlB2lW5eASC",
-    host="db-mysql-fra1-09136-do-user-7651996-0.b.db.ondigitalocean.com",
-    port=25060,
-    database="st-onl",
-)
+try:
+    db = mysql.connect(
+        user="st-onl",
+        passwd="AVNS_tegPDkI5BlB2lW5eASC",
+        host="db-mysql-fra1-09136-do-user-7651996-0.b.db.ondigitalocean.com",
+        port=25060,
+        database="st-onl",
+    )
+    logging.info("Successfully connected to the database.")
+except mysql.Error as e:
+    logging.error(f"Error connecting to the database: {e}")
+    raise
 
 # Create a cursor
 cursor = db.cursor(dictionary=True)
 
 
-def generate_random_names(
-    first_name: Optional[str] = None,
-    last_names: Optional[str] = None,
-) -> RandomName:
-    name = first_name or random.choice(RandomData.random_first_names)
-    second_name = last_names or random.choice(RandomData.random_last_names)
-
-    return RandomName(first_name=name, last_name=second_name)
-
-
+@utils.handle_db_exceptions
 def create_student(
     name: str,
     second_name: str,
 ):
+    # Validate inputs
+    if not utils.validate_input(name) or not utils.validate_input(second_name):
+        logging.warning(f"Invalid input: {name}, {second_name}")
+        raise ValueError(
+            "Invalid input: names should only contain alphabetic characters and spaces"
+        )
+
+    # Sanitize inputs
+    name = utils.sanitize_string(name)
+    second_name = utils.sanitize_string(second_name)
+
+    # Parameterized query
     insert_student_query = """
     INSERT INTO students (name, second_name, group_id)
     VALUES (%s, %s, NULL)
     """
-    try:
-        cursor.execute(insert_student_query, (name, second_name))
-        print(f"Student '{name} {second_name}' created")
-        return cursor.lastrowid
-    except Exception as error:
-        raise ValueError(f"Error creating student: {error}")
+
+    cursor.execute(insert_student_query, (name, second_name))
+    logging.info(f"Student '{name} {second_name}' created")
+    return cursor.lastrowid
 
 
+@utils.handle_db_exceptions
 def select_student_by_id(student_id: str):
+    # Validate ID
+    utils.validate_id(student_id)
+
+    # Parameterized query
     select_student_by_id_query = """
     SELECT * from students where id = %s
     """
-    try:
-        cursor.execute(select_student_by_id_query, (student_id,))
-
-        return cursor.fetchone()
-    except Exception as error:
-        raise ValueError(f"Error selecting student by id: {error}")
+    cursor.execute(select_student_by_id_query, (student_id,))
+    return cursor.fetchone()
 
 
-# -- Создайте несколько книг (books) и укажите, что ваш созданный студент взял их
-
-
-def generate_random_book_title() -> str:
-    adjective = random.choice(RandomData.adjectives)
-    noun = random.choice(RandomData.nouns)
-    connector = random.choice(RandomData.connectors)
-    second_noun = random.choice(RandomData.nouns)
-
-    return f"The {adjective} {noun} {connector} the {second_noun}"
-
-
+@utils.handle_db_exceptions
 def create_book(
     title: str,
 ):
+    # Sanitize inputs
+    title = utils.sanitize_string(title)
+
+    # Parameterized query
     insert_books_query = """
     INSERT INTO books (title, taken_by_student_id)
     VALUES (%s, NULL)
     """
-    try:
-        cursor.execute(insert_books_query, (title,))
-
-        print(f"Book '{title}' created")
-        return cursor.lastrowid
-    except Exception as error:
-        raise ValueError(f"Error creating book {title}: {error}")
+    cursor.execute(insert_books_query, (title,))
+    logging.info(f"Book '{title}' created")
+    return cursor.lastrowid
 
 
+@utils.handle_db_exceptions
 def select_book_by_id(book_id: str):
+    # Validate ID
+    utils.validate_id(book_id)
+
+    # Parameterized query
     select_book_by_id_query = """
     SELECT * from books where id = %s
     """
-    try:
-        cursor.execute(select_book_by_id_query, (book_id,))
-
-        return cursor.fetchone()
-    except Exception as error:
-        raise ValueError(f"Error selecting book {book_id} by id: {error}")
+    cursor.execute(select_book_by_id_query, (book_id,))
+    return cursor.fetchone()
 
 
+@utils.handle_db_exceptions
 def assigne_student_to_book(
     student_id: str,
     book_id: str,
 ) -> None:
+    # Validate IDs
+    utils.validate_id(book_id)
+    utils.validate_id(student_id)
+
+    # Parameterized query
     update_books_query = """
     UPDATE books
     SET taken_by_student_id=%s
     WHERE id=%s
     """
-    try:
-        cursor.execute(update_books_query, (student_id, book_id))
-
-        print(f"Student '{student_id}' assigned to book '{book_id}'")
-    except Exception as error:
-        raise ValueError(
-            f"Error assigning student {student_id} to book {book_id}: {error}"
-        )
+    cursor.execute(update_books_query, (student_id, book_id))
+    logging.info(f"Student '{student_id}' assigned to book '{book_id}'")
 
 
-def generate_random_group_title() -> str:
-
-    descriptor = random.choice(RandomData.group_descriptors)
-    subject = random.choice(RandomData.group_subjects)
-    theme = random.choice(RandomData.group_themes)
-
-    return f"{descriptor} {subject} {theme}"
-
-
-def generate_random_dates() -> DateRange:
-    start_date = datetime(2020, 9, 1)  # Starting from September 2020
-    end_date = datetime(2030, 9, 30)  # Until September 2030
-
-    # Generate random date between the given range
-    random_start_date = start_date + timedelta(
-        days=random.randint(0, (end_date - start_date).days)
-    )
-
-    # Ensure end date is after start date, at least one month after
-    random_end_date = random_start_date + timedelta(days=random.randint(30, 365))
-
-    # Change format mm yyyy
-    return DateRange(
-        start_date=random_start_date.strftime("%m-%Y"),
-        end_date=random_end_date.strftime("%m-%Y"),
-    )
-
-
+@utils.handle_db_exceptions
 def create_group(
     title: str,
     start_date: str,
     end_date: str,
 ):
+    # Sanitize inputs
+    title = utils.sanitize_string(title)
+
+    # Parameterized query
     insert_groups_query = """
     INSERT INTO `groups` (title, start_date, end_date)
     VALUES (%s, %s, %s)
     """
-    try:
-        cursor.execute(insert_groups_query, (title, start_date, end_date))
 
-        print(f"Group '{title}' created")
-        return cursor.lastrowid
-    except Exception as error:
-        raise ValueError(f"Error creating group {title}: {error}")
+    cursor.execute(insert_groups_query, (title, start_date, end_date))
+    logging.info(f"Group '{title}' created")
+    return cursor.lastrowid
 
 
+@utils.handle_db_exceptions
 def select_group_by_id(group_id: str):
+    # Validate ID
+    utils.validate_id(group_id)
+
+    # Parameterized query
     select_group_by_id_query = """
     SELECT * from `groups` where id = %s
     """
-    try:
-        cursor.execute(select_group_by_id_query, (group_id,))
 
-        return cursor.fetchone()
-    except Exception as error:
-        raise ValueError(f"Error selecting group {group_id} by id: {error}")
+    cursor.execute(select_group_by_id_query, (group_id,))
+    return cursor.fetchone()
 
 
+@utils.handle_db_exceptions
 def assigne_group_to_student(
     group_id: str,
     student_id: str,
 ):
+    # Validate IDs
+    utils.validate_id(group_id)
+    utils.validate_id(student_id)
+
+    # Parameterized query
     update_student_query = """
     UPDATE students SET group_id=%s
     WHERE id=%s
     """
-    try:
-        cursor.execute(update_student_query, (group_id, student_id))
 
-        print(f"Student {student_id} assigned to group '{group_id}'")
-    except Exception as error:
-        raise ValueError(
-            f"Error assigning group {group_id} to student {student_id}: {error}"
-        )
+    cursor.execute(update_student_query, (group_id, student_id))
+    logging.info(f"Student {student_id} assigned to group '{group_id}'")
 
 
-def generate_random_subject_title() -> str:
-
-    subject = random.choice(RandomData.subjects)
-    theme = random.choice(RandomData.themes)
-
-    return f"{theme} of {subject}"
-
-
+@utils.handle_db_exceptions
 def create_subject(
     title: str,
 ):
+    # Sanitize inputs
+    title = utils.sanitize_string(title)
+
+    # Parameterized query
     insert_subjects_query = """
     INSERT INTO subjets (title)
     VALUES (%s);
     """
-    try:
-        cursor.execute(insert_subjects_query, (title,))
 
-        print(f"Subject '{title}' created")
-        return cursor.lastrowid
-    except Exception as error:
-        raise ValueError(f"Error creating subject {title}: {error}")
+    cursor.execute(insert_subjects_query, (title,))
+    logging.info(f"Subject '{title}' created")
+    return cursor.lastrowid
 
 
+@utils.handle_db_exceptions
 def select_subject_by_id(subject_id: str):
+    # Validate ID
+    utils.validate_id(subject_id)
+
+    # Parameterized query
     select_subject_by_id_query = """
     SELECT * from subjets where id = %s
     """
-    try:
-        cursor.execute(select_subject_by_id_query, (subject_id,))
 
-        return cursor.fetchone()
-    except Exception as error:
-        raise ValueError(f"Error selecting subject {subject_id} by id: {error}")
+    cursor.execute(select_subject_by_id_query, (subject_id,))
+    return cursor.fetchone()
 
 
-def generate_random_lesson_title(subject: str) -> str:
-    lesson_topic = random.choice(RandomData.lesson_themes)
-
-    return f"{lesson_topic} in {subject}"
-
-
+@utils.handle_db_exceptions
 def create_lesson(
     subject_id: str,
     title: str,
 ):
+    # Validate ID
+    utils.validate_id(subject_id)
+
+    # Sanitize inputs
+    title = utils.sanitize_string(title)
+
+    # Parameterized query
     insert_lessons_query = """
     INSERT INTO lessons (title, subject_id)
     VALUES
     (%s, %s)
     """
-    try:
-        cursor.execute(insert_lessons_query, (title, subject_id))
-        print(f"Lesson '{title}' created")
-        return cursor.lastrowid
-    except Exception as error:
-        raise ValueError(f"Error creating lesson {title}: {error}")
+
+    cursor.execute(insert_lessons_query, (title, subject_id))
+    logging.info(f"Lesson '{title}' created")
+    return cursor.lastrowid
 
 
+@utils.handle_db_exceptions
 def select_lesson_by_id(lesson_id: str):
-    try:
-        cursor.execute(f"SELECT * from lessons where id = {lesson_id}")
+    # Validate ID
+    utils.validate_id(lesson_id)
 
-        return cursor.fetchone()
-    except Exception as error:
-        raise ValueError(f"Error selecting lesson {lesson_id} by id: {error}")
+    # Parameterized query
+    select_lesson_by_id_query = """
+    SELECT * from lessons where id = %s
+    """
+
+    cursor.execute(select_lesson_by_id_query, (lesson_id,))
+    return cursor.fetchone()
 
 
-def generate_random_mark() -> str:
-    return random.choice(RandomData.marks)
-
-
+@utils.handle_db_exceptions
 def add_mark_to_lesson(
     lesson_id: str,
     student_id: str,
     value: str,
 ):
+    # Validate IDs
+    utils.validate_id(lesson_id)
+    utils.validate_id(student_id)
+
+    # Sanitize inputs
+    value = utils.sanitize_string(value)
+
+    # Parameterized query
     insert_marks_query = """
     INSERT INTO marks (value, lesson_id, student_id)
     VALUES (%s, %s, %s)
     """
-    try:
-        cursor.execute(insert_marks_query, (value, lesson_id, student_id))
 
-        print(
-            f"Mark '{value}' added to lesson '{lesson_id}' and student '{student_id}'"
-        )
-        return cursor.lastrowid
-    except Exception as error:
-        raise ValueError(f"Error adding mark {value} to lesson {lesson_id}: {error}")
+    cursor.execute(insert_marks_query, (value, lesson_id, student_id))
+    logging.info(
+        f"Mark '{value}' added to lesson '{lesson_id}' and student '{student_id}'"
+    )
+    return cursor.lastrowid
 
 
+@utils.handle_db_exceptions
 def get_all_marks_for_student(student_id: str) -> list:
+    # Validate ID
+    utils.validate_id(student_id)
+
+    # Parameterized query
     select_marks_query = """
     SELECT * FROM marks WHERE student_id=%s ORDER BY id DESC
     """
-    try:
-        cursor.execute(select_marks_query, (student_id,))
 
-        return cursor.fetchall()
-    except Exception as error:
-        raise ValueError(f"Error selecting marks for student {student_id}: {error}")
+    cursor.execute(select_marks_query, (student_id,))
+    return cursor.fetchall()
 
 
+@utils.handle_db_exceptions
 def get_all_books_for_student(student_id: str) -> list:
+    # Validate ID
+    utils.validate_id(student_id)
+
+    # Parameterized query
     select_books_query = """
     SELECT * FROM books WHERE taken_by_student_id=%s ORDER BY id DESC
     """
-    try:
-        cursor.execute(select_books_query, (student_id,))
 
-        return cursor.fetchall()
-    except Exception as error:
-        raise ValueError(f"Error selecting books for student {student_id}: {error}")
+    cursor.execute(select_books_query, (student_id,))
+    return cursor.fetchall()
 
 
+@utils.handle_db_exceptions
 def get_student_details(student_id: str):
     """
     Retrieve all available information about a student from the database:
     group, books, grades with the names of lessons and subjects
     (all in one query using JOIN).
     """
+    # Validate ID
+    utils.validate_id(student_id)
+
+    # Parameterized query
     select_student_details_query = """
     SELECT
         students.name,
@@ -344,18 +323,21 @@ def get_student_details(student_id: str):
     LEFT JOIN subjets ON lessons.subject_id = subjets.id
     WHERE students.id = %s;
     """
-    try:
-        cursor.execute(select_student_details_query, (student_id,))
 
-        return cursor.fetchall()
-    except Exception as error:
-        raise ValueError(
-            f"Error selecting student details for student {student_id}: {error}"
-        )
+    cursor.execute(select_student_details_query, (student_id,))
+    return cursor.fetchall()
+
+
+# Close the database connection properly at the end of the script
+def close_connection():
+    if db.is_connected():
+        cursor.close()
+        db.close()
+        logging.info("Database connection closed.")
 
 
 # Create a student
-random_name = generate_random_names()
+random_name = utils.generate_random_names()
 student_id = create_student(random_name.first_name, random_name.last_name)
 
 # Verify the student is created
@@ -367,7 +349,7 @@ assert (
 ), "Student should not be assigned to any group initially"
 
 # Create a book
-book_title = generate_random_book_title()
+book_title = utils.generate_random_book_title()
 book_id = create_book(book_title)
 
 # Verify the book is created
@@ -388,8 +370,8 @@ assert (
 ), "Book should be assigned to the student now"
 
 # Create a group
-group_title = generate_random_group_title()
-random_date = generate_random_dates()
+group_title = utils.generate_random_group_title()
+random_date = utils.generate_random_dates()
 group_id = create_group(group_title, random_date.start_date, random_date.end_date)
 
 # Verify the group is created
@@ -403,34 +385,37 @@ student_data = select_student_by_id(student_id)
 assert (
     student_data["group_id"] == group_id
 ), "Student should be assigned to the group now"
+logging.info(f"PASSED: Student '{student_id}' is assigned to the group '{group_id}'")
 
 # Create a subject
-subject_title = generate_random_subject_title()
+subject_title = utils.generate_random_subject_title()
 subject_id = create_subject(subject_title)
 
 # Verify the subject is created
 subject_info = select_subject_by_id(subject_id)
 
 # Create lessons for the subject
-lesson_title = generate_random_lesson_title(subject_title)
+lesson_title = utils.generate_random_lesson_title(subject_title)
 lesson_id = create_lesson(subject_id, lesson_title)
 
 # Verify the lesson is created
 lesson_info = select_lesson_by_id(lesson_id)
 
 # Add a mark to the lesson
-mark_value = generate_random_mark()
+mark_value = utils.generate_random_mark()
 add_mark_to_lesson(lesson_id, student_id, mark_value)
 
 # Verify the mark is added to the lesson
 marks = get_all_marks_for_student(student_id)
 assert len(marks) == 1, "There should be only one mark for the student"
 assert marks[0]["value"] == mark_value, "Mark value should be the same"
+logging.info(f"PASSED: Mark '{mark_value}' is added to the lesson '{lesson_id}'")
 
 # Get all books for the student
 books = get_all_books_for_student(student_id)
 assert len(books) == 1, "There should be only one book for the student"
 assert books[0]["title"] == book_title, "Book title should be the same"
+logging.info(f"PASSED: Book '{book_title}' is assigned to the student '{student_id}'")
 
 # Get all details for the student
 student_details = get_student_details(student_id)
@@ -450,7 +435,11 @@ assert (
 assert (
     student_details[0]["subject_title"] == subject_title
 ), "Subject title should be the same"
+logging.info("PASSED: Student details are retrieved successfully")
 
+# Commit the changes
+db.commit()
+logging.info("Changes committed successfully")
 
 # Close the database connection
-db.close()
+close_connection()
