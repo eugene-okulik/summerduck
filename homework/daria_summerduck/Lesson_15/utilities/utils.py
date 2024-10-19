@@ -1,5 +1,6 @@
 import re
 from functools import wraps
+from collections import defaultdict
 
 # Precompile regular expressions
 input_pattern = re.compile(r"^[A-Za-z\s]+$")
@@ -71,3 +72,33 @@ def validate_and_sanitize_params(func):
         return func(*sanitized_args, **sanitized_kwargs)
 
     return wrapper
+
+
+def organize_student_details(details):
+    organized_data = {
+        "name": details[0]["name"],
+        "second_name": details[0]["second_name"],
+        "id": details[0]["id"],
+        "group_title": details[0]["group_title"],
+        "books": list(
+            set(detail["book_title"] for detail in details if detail["book_title"])
+        ),
+        "subjects": defaultdict(lambda: {"lessons": defaultdict(set)}),
+    }
+
+    for detail in details:
+        lesson_title = detail["lesson_title"]
+        subject_title = detail["subject_title"]
+        mark_value = detail["mark_value"]
+
+        if subject_title and lesson_title:
+            organized_data["subjects"][subject_title]["lessons"][lesson_title].add(
+                mark_value
+            )
+
+    # Convert sets back to lists for JSON serialization
+    for subject in organized_data["subjects"].values():
+        for lesson in subject["lessons"]:
+            subject["lessons"][lesson] = list(subject["lessons"][lesson])
+
+    return organized_data
