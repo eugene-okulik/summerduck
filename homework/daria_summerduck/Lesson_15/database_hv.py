@@ -31,22 +31,12 @@ except mysql.Error as e:
 cursor = db.cursor(dictionary=True)
 
 
+@utils.validate_and_sanitize_params
 @utils.handle_db_exceptions
 def create_student(
     name: str,
     second_name: str,
 ):
-    # Validate inputs
-    if not utils.validate_input(name) or not utils.validate_input(second_name):
-        logging.warning(f"Invalid input: {name}, {second_name}")
-        raise ValueError(
-            "Invalid input: names should only contain alphabetic characters and spaces"
-        )
-
-    # Sanitize inputs
-    name = utils.sanitize_string(name)
-    second_name = utils.sanitize_string(second_name)
-
     # Parameterized query
     insert_student_query = """
     INSERT INTO students (name, second_name, group_id)
@@ -58,11 +48,9 @@ def create_student(
     return cursor.lastrowid
 
 
+@utils.validate_and_sanitize_params
 @utils.handle_db_exceptions
 def select_student_by_id(student_id: int):
-    # Validate ID
-    utils.validate_id(student_id)
-
     # Parameterized query
     select_student_by_id_query = """
     SELECT * from students where id = %s
@@ -71,13 +59,11 @@ def select_student_by_id(student_id: int):
     return cursor.fetchone()
 
 
+@utils.validate_and_sanitize_params
 @utils.handle_db_exceptions
 def create_book(
     title: str,
 ):
-    # Sanitize inputs
-    title = utils.sanitize_string(title)
-
     # Parameterized query
     insert_books_query = """
     INSERT INTO books (title, taken_by_student_id)
@@ -88,11 +74,9 @@ def create_book(
     return cursor.lastrowid
 
 
+@utils.validate_and_sanitize_params
 @utils.handle_db_exceptions
 def select_book_by_id(book_id: int):
-    # Validate ID
-    utils.validate_id(book_id)
-
     # Parameterized query
     select_book_by_id_query = """
     SELECT * from books where id = %s
@@ -101,15 +85,12 @@ def select_book_by_id(book_id: int):
     return cursor.fetchone()
 
 
+@utils.validate_and_sanitize_params
 @utils.handle_db_exceptions
 def assigne_student_to_book(
     student_id: int,
     book_id: int,
 ) -> None:
-    # Validate IDs
-    utils.validate_id(book_id)
-    utils.validate_id(student_id)
-
     # Parameterized query
     update_books_query = """
     UPDATE books
@@ -120,15 +101,13 @@ def assigne_student_to_book(
     logging.info(f"Student '{student_id}' assigned to book '{book_id}'")
 
 
+@utils.validate_and_sanitize_params
 @utils.handle_db_exceptions
 def create_group(
     title: str,
     start_date: str,
     end_date: str,
 ):
-    # Sanitize inputs
-    title = utils.sanitize_string(title)
-
     # Parameterized query
     insert_groups_query = """
     INSERT INTO `groups` (title, start_date, end_date)
@@ -140,11 +119,9 @@ def create_group(
     return cursor.lastrowid
 
 
+@utils.validate_and_sanitize_params
 @utils.handle_db_exceptions
 def select_group_by_id(group_id: int):
-    # Validate ID
-    utils.validate_id(group_id)
-
     # Parameterized query
     select_group_by_id_query = """
     SELECT * from `groups` where id = %s
@@ -154,15 +131,12 @@ def select_group_by_id(group_id: int):
     return cursor.fetchone()
 
 
+@utils.validate_and_sanitize_params
 @utils.handle_db_exceptions
 def assigne_group_to_student(
     group_id: int,
     student_id: int,
 ):
-    # Validate IDs
-    utils.validate_id(group_id)
-    utils.validate_id(student_id)
-
     # Parameterized query
     update_student_query = """
     UPDATE students SET group_id=%s
@@ -173,13 +147,11 @@ def assigne_group_to_student(
     logging.info(f"Student {student_id} assigned to group '{group_id}'")
 
 
+@utils.validate_and_sanitize_params
 @utils.handle_db_exceptions
 def create_subject(
     title: str,
 ):
-    # Sanitize inputs
-    title = utils.sanitize_string(title)
-
     # Parameterized query
     insert_subjects_query = """
     INSERT INTO subjets (title)
@@ -191,11 +163,9 @@ def create_subject(
     return cursor.lastrowid
 
 
+@utils.validate_and_sanitize_params
 @utils.handle_db_exceptions
 def select_subject_by_id(subject_id: int):
-    # Validate ID
-    utils.validate_id(subject_id)
-
     # Parameterized query
     select_subject_by_id_query = """
     SELECT * from subjets where id = %s
@@ -205,17 +175,12 @@ def select_subject_by_id(subject_id: int):
     return cursor.fetchone()
 
 
+@utils.validate_and_sanitize_params
 @utils.handle_db_exceptions
 def create_lesson(
     subject_id: int,
     title: str,
 ):
-    # Validate ID
-    utils.validate_id(subject_id)
-
-    # Sanitize inputs
-    title = utils.sanitize_string(title)
-
     # Parameterized query
     insert_lessons_query = """
     INSERT INTO lessons (title, subject_id)
@@ -228,11 +193,9 @@ def create_lesson(
     return cursor.lastrowid
 
 
+@utils.validate_and_sanitize_params
 @utils.handle_db_exceptions
 def select_lesson_by_id(lesson_id: int):
-    # Validate ID
-    utils.validate_id(lesson_id)
-
     # Parameterized query
     select_lesson_by_id_query = """
     SELECT * from lessons where id = %s
@@ -242,19 +205,13 @@ def select_lesson_by_id(lesson_id: int):
     return cursor.fetchone()
 
 
+@utils.validate_and_sanitize_params
 @utils.handle_db_exceptions
 def add_mark_to_lesson(
     lesson_id: int,
     student_id: int,
     value: str,
 ):
-    # Validate IDs
-    utils.validate_id(lesson_id)
-    utils.validate_id(student_id)
-
-    # Sanitize inputs
-    value = utils.sanitize_string(value)
-
     # Parameterized query
     insert_marks_query = """
     INSERT INTO marks (value, lesson_id, student_id)
@@ -268,11 +225,9 @@ def add_mark_to_lesson(
     return cursor.lastrowid
 
 
+@utils.validate_and_sanitize_params
 @utils.handle_db_exceptions
 def get_all_marks_for_student(student_id: int) -> list:
-    # Validate ID
-    utils.validate_id(student_id)
-
     # Parameterized query
     select_marks_query = """
     SELECT * FROM marks WHERE student_id=%s ORDER BY id DESC
@@ -282,11 +237,9 @@ def get_all_marks_for_student(student_id: int) -> list:
     return cursor.fetchall()
 
 
+@utils.validate_and_sanitize_params
 @utils.handle_db_exceptions
 def get_all_books_for_student(student_id: int) -> list:
-    # Validate ID
-    utils.validate_id(student_id)
-
     # Parameterized query
     select_books_query = """
     SELECT * FROM books WHERE taken_by_student_id=%s ORDER BY id DESC
@@ -296,6 +249,7 @@ def get_all_books_for_student(student_id: int) -> list:
     return cursor.fetchall()
 
 
+@utils.validate_and_sanitize_params
 @utils.handle_db_exceptions
 def get_student_details(student_id: int):
     """
@@ -303,9 +257,6 @@ def get_student_details(student_id: int):
     group, books, grades with the names of lessons and subjects
     (all in one query using JOIN).
     """
-    # Validate ID
-    utils.validate_id(student_id)
-
     # Parameterized query
     select_student_details_query = """
     SELECT
@@ -354,6 +305,7 @@ def commit_changes():
 first_name = Random.first_name()
 last_name = Random.last_name()
 student_id = create_student(first_name, last_name)
+logging.info(f"Student ID {student_id}")
 
 # Verify the student is created
 student_data = select_student_by_id(student_id)
