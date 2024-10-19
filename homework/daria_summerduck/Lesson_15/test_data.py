@@ -35,6 +35,19 @@ class RandomData:
         "Biology",
     ]
 
+    part_numbers = [
+        "I",
+        "II",
+        "III",
+        "IV",
+        "V",
+        "VI",
+        "VII",
+        "VIII",
+        "IX",
+        "X",
+    ]
+
     lesson_themes = [
         "Overview",
         "Key Concepts",
@@ -42,6 +55,16 @@ class RandomData:
         "Applications",
         "Case Studies",
         "Challenges",
+        "Experiments",
+        "Research",
+        "Projects",
+        "Exercises",
+        "Solutions",
+        "Analysis",
+        "Discussion",
+        "Review",
+        "Summary",
+        "Conclusion",
     ]
 
     adjectives = [
@@ -166,7 +189,7 @@ class RandomData:
     @classmethod
     def lesson_title(cls, subject: str) -> str:
         """Generates a random lesson title."""
-        return f"{random.choice(cls.lesson_themes)} in {subject}"
+        return f"{random.choice(cls.lesson_themes)} in {subject} part {random.choice(cls.part_numbers)}"
 
     @classmethod
     def mark(cls) -> str:

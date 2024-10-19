@@ -6,7 +6,7 @@ from test_data import RandomData as Random
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,  # DEBUG, DEBUG, WARNING, ERROR, CRITICAL
+    level=logging.DEBUG,  # DEBUG, DEBUG, WARNING, ERROR, CRITICAL
     format="%(asctime)s - %(levelname)s - %(message)s",  # Log format
     handlers=[
         logging.FileHandler("app.log"),  # Write logs to a file
@@ -53,7 +53,6 @@ def close_connection():
 def commit_changes():
     try:
         db.commit()
-        logging.debug("Changes committed successfully")
     except mysql.Error as e:
         logging.error(f"Error committing changes: {e}")
         db.rollback()
@@ -74,8 +73,10 @@ def create_student(
 
     cursor.execute(INSERT_STUDENT_QUERY, (name, second_name))
     commit_changes()
+    student_id = cursor.lastrowid
     logging.debug(f"Student '{name} {second_name}' created")
-    return cursor.lastrowid
+    logging.debug(f"Student ID {student_id}")
+    return student_id
 
 
 @utils.validate_and_sanitize_params
@@ -148,8 +149,10 @@ def create_group(
 
     cursor.execute(INSERT_GROUPS_QUERY, (title, start_date, end_date))
     commit_changes()
+    group_id = cursor.lastrowid
     logging.debug(f"Group '{title}' created")
-    return cursor.lastrowid
+    logging.debug(f"Group ID {group_id}")
+    return group_id
 
 
 @utils.validate_and_sanitize_params
@@ -318,22 +321,26 @@ def get_student_details(student_id: int):
     return cursor.fetchall()
 
 
-# Constants
+# Constants for the script
 BOOK_NUMBER = 2
-SUBJECT_NUMBER = 3
-LESSONS_PER_SUBJECT = 2
+SUBJECT_NUMBER = 2
+LESSONS_PER_SUBJECT = 3
 
 
 def main():
-    # Create a student
+
+    # Generate random data
     first_name = Random.first_name()
     last_name = Random.last_name()
-    student_id = create_student(first_name, last_name)
-    logging.debug(f"Student ID {student_id}")
+    group_title = Random.group_title()
+    date = Random.start_and_end_dates()
+    subject_titles = [Random.subject_title() for _ in range(SUBJECT_NUMBER)]
 
-    # Verify the student is created
+    # Create a student
+    student_id = create_student(first_name, last_name)
+
+    # Get the student data
     student_data = select_student_by_id(student_id)
-    assert student_data, "Student should be created"
 
     # Check if the student is not assigned to any group initially
     assert (
@@ -341,15 +348,7 @@ def main():
     ), "Student should not be assigned to any group initially"
 
     # Create a group
-    group_title = Random.group_title()
-    date = Random.start_and_end_dates()
     group_id = create_group(group_title, date.start_date, date.end_date)
-    logging.debug(f"Group ID {group_id}")
-
-    # Verify the group is created
-    group_info = select_group_by_id(group_id)
-    assert group_info, "Group should be created"
-    logging.debug(f"PASSED: Group '{group_title}' is created")
 
     # Assign the student to the group
     assign_group_to_student(group_id, student_id)
@@ -381,21 +380,22 @@ def main():
         assert (
             book_data["taken_by_student_id"] == student_id
         ), "Book should be assigned to the student"
+        logging.debug(
+            f"PASSED: Book '{book_id}' is assigned to the student '{student_id}'"
+        )
 
     # Create multiple subjects
-    subject_titles = [Random.subject_title() for _ in range(SUBJECT_NUMBER)]
     subject_ids = [create_subject(title) for title in subject_titles]
 
     # Create two lessons for each subject and add marks for the student
     for subject_id, subject_title in zip(subject_ids, subject_titles):
         for _ in range(LESSONS_PER_SUBJECT):
-
-            # Create a lesson
+            # Generate random data
             lesson_title = Random.lesson_title(subject_title)
-            lesson_id = create_lesson(subject_id, lesson_title)
-
-            # Add a mark to the lesson
             mark_value = Random.mark()
+
+            # Create a lesson and add a mark to it
+            lesson_id = create_lesson(subject_id, lesson_title)
             add_mark_to_lesson(lesson_id, student_id, mark_value)
 
     # Get all marks for the student
@@ -417,10 +417,10 @@ def main():
     # Get all details for the student
     student_details = get_student_details(student_id)
     assert student_details, "Student details should not be empty"
-    logging.debug("PASSED: Student details are retrieved successfully")
+    # logging.debug(f"Student full details: \n{student_details}")
+    # logging.debug("PASSED: Student details are retrieved successfully")
 
     # Organize the student details and print them
-    logging.debug(f"Student full details: \n{student_details}")
     organized_student_details = utils.organize_student_details(student_details)
     logging.info(
         f"Organized student details: \n{json.dumps(organized_student_details, indent=4)}"
