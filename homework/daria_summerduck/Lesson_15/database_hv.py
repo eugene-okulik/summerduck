@@ -435,7 +435,6 @@ def main():
 
                 # Get the student data
                 student_data = select_student_by_id(student_id)
-                print(student_data)
 
                 # Check if the student is not assigned to any group initially
                 assert (
@@ -458,7 +457,6 @@ def main():
                 )
 
                 # Create and assign books to the student
-
                 for _ in range(BOOK_NUMBER):
                     # Create a book
                     book_title = f"{fake.sentence(nb_words=3).strip('.')} of {fake.word().capitalize()}"
