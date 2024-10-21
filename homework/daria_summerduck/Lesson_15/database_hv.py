@@ -1,15 +1,18 @@
 import json
 import logging
+import os
+import csv
 import mysql.connector as mysql
+from dotenv import load_dotenv
 from utilities import utils
-from test_data import RandomData as Random
+from faker import Faker
 
 # Configure logging
 logging.basicConfig(
     level=logging.DEBUG,  # DEBUG, DEBUG, WARNING, ERROR, CRITICAL
     format="%(asctime)s - %(levelname)s - %(message)s",  # Log format
     handlers=[
-        logging.FileHandler("app.log"),  # Write logs to a file
+        # logging.FileHandler("app.log"),  # Write logs to a file
         logging.StreamHandler(),  # Output logs to the console
     ],
 )
@@ -17,13 +20,14 @@ logging.basicConfig(
 
 # Connect to the database
 def connect_to_db():
+    load_dotenv()
     try:
         db = mysql.connect(
-            user="st-onl",
-            passwd="AVNS_tegPDkI5BlB2lW5eASC",
-            host="db-mysql-fra1-09136-do-user-7651996-0.b.db.ondigitalocean.com",
-            port=25060,
-            database="st-onl",
+            user=os.getenv("DB_USER"),
+            passwd=os.getenv("DB_PASSW"),
+            host=os.getenv("DB_HOST"),
+            port=os.getenv("DB_PORT"),
+            database=os.getenv("DB_NAME"),
         )
         logging.info("Successfully connected to the database.")
         return db
@@ -321,6 +325,90 @@ def get_student_details(student_id: int):
     return cursor.fetchall()
 
 
+def check_csv_data_in_db(csv_file_path: str):
+    with open(csv_file_path, mode="r", encoding="utf-8") as csv_file:
+        csv_reader = csv.DictReader(csv_file)
+        for row in csv_reader:
+            try:
+                student_name = row["name"]
+                student_second_name = row["second_name"]
+                book_title = row["book_title"]
+                subject_title = row["subject_title"]
+                lesson_title = row["lesson_title"]
+                mark_value = row["mark_value"]
+            except KeyError as e:
+                raise ValueError(f"Missing key in CSV: {e}")
+
+            # Check if student exists
+            student_query = """
+            SELECT * FROM students WHERE name=%s AND second_name=%s
+            """
+            cursor.execute(student_query, (student_name, student_second_name))
+            student = cursor.fetchone()
+            if not student:
+                logging.warning(
+                    f"Student {student_name} {student_second_name} not found in the database."
+                )
+                continue
+
+            student_id = student["id"]
+
+            # Check if book exists
+            book_query = """
+            SELECT * FROM books WHERE title=%s AND taken_by_student_id=%s
+            """
+            cursor.execute(book_query, (book_title, student_id))
+            book = cursor.fetchone()
+            if not book:
+                logging.warning(
+                    f"Book {book_title} not found for student {student_name} {student_second_name}."
+                )
+                continue
+
+            # Check if subject exists
+            subject_query = """
+            SELECT * FROM subjets WHERE title=%s
+            """
+            cursor.execute(subject_query, (subject_title,))
+            subject = cursor.fetchone()
+            if not subject:
+                logging.warning(f"Subject {subject_title} not found in the database.")
+                continue
+
+            subject_id = subject["id"]
+
+            # Check if lesson exists
+            lesson_query = """
+            SELECT * FROM lessons WHERE title=%s AND subject_id=%s
+            """
+            cursor.execute(lesson_query, (lesson_title, subject_id))
+            lesson = cursor.fetchone()
+            if not lesson:
+                logging.warning(
+                    f"Lesson {lesson_title} not found for subject {subject_title}."
+                )
+                continue
+
+            lesson_id = lesson["id"]
+
+            # Check if mark exists
+            mark_query = """
+            SELECT * FROM marks WHERE value=%s AND lesson_id=%s AND student_id=%s
+            """
+            cursor.execute(mark_query, (mark_value, lesson_id, student_id))
+            mark = cursor.fetchone()
+            if not mark:
+                logging.warning(
+                    f"Mark {mark_value} not found for lesson {lesson_title} "
+                    f"and student {student_name} {student_second_name}."
+                )
+                continue
+
+            logging.info(
+                f"All data for student {student_name} {student_second_name} is present in the database."
+            )
+
+
 # Constants for the script
 BOOK_NUMBER = 2
 SUBJECT_NUMBER = 2
@@ -329,108 +417,133 @@ LESSONS_PER_SUBJECT = 3
 
 def main():
 
-    # Generate random data
-    first_name = Random.first_name()
-    last_name = Random.last_name()
-    group_title = Random.group_title()
-    date = Random.start_and_end_dates()
-    subject_titles = [Random.subject_title() for _ in range(SUBJECT_NUMBER)]
+    try:
+        lesson_number = input("Select lesson 15 or 16 and press Enter: ")
+        match lesson_number:
+            case "15":
+                # Generate fake data
+                fake = Faker()
+                first_name = fake.first_name()
+                last_name = fake.last_name()
+                group_title = fake.word()
+                start_date = fake.past_date()
+                end_date = fake.future_date()
+                subject_titles = [fake.word() for _ in range(SUBJECT_NUMBER)]
 
-    # Create a student
-    student_id = create_student(first_name, last_name)
+                # Create a student
+                student_id = create_student(first_name, last_name)
 
-    # Get the student data
-    student_data = select_student_by_id(student_id)
+                # Get the student data
+                student_data = select_student_by_id(student_id)
+                print(student_data)
 
-    # Check if the student is not assigned to any group initially
-    assert (
-        student_data["group_id"] is None
-    ), "Student should not be assigned to any group initially"
+                # Check if the student is not assigned to any group initially
+                assert (
+                    student_data["group_id"] is None
+                ), "Student should not be assigned to any group initially"
 
-    # Create a group
-    group_id = create_group(group_title, date.start_date, date.end_date)
+                # Create a group
+                group_id = create_group(group_title, start_date, end_date)
 
-    # Assign the student to the group
-    assign_group_to_student(group_id, student_id)
+                # Assign the student to the group
+                assign_group_to_student(group_id, student_id)
 
-    # Check if the student is assigned to the group
-    student_data = select_student_by_id(student_id)
-    assert (
-        student_data["group_id"] == group_id
-    ), "Student should be assigned to the group now"
-    logging.debug(
-        f"PASSED: Student '{student_id}' is assigned to the group '{group_id}'"
-    )
+                # Check if the student is assigned to the group
+                student_data = select_student_by_id(student_id)
+                assert (
+                    student_data["group_id"] == group_id
+                ), "Student should be assigned to the group now"
+                logging.debug(
+                    f"PASSED: Student '{student_id}' is assigned to the group '{group_id}'"
+                )
 
-    # Create and assign books to the student
-    book_ids = []
-    book_titles = []
-    for _ in range(BOOK_NUMBER):
-        # Create a book
-        book_title = Random.book_title()
-        book_titles.append(book_title)
-        book_id = create_book(book_title)
-        book_ids.append(book_id)
+                # Create and assign books to the student
 
-        # Assign the book to the student
-        assign_student_to_book(student_id, book_id)
+                for _ in range(BOOK_NUMBER):
+                    # Create a book
+                    book_title = f"{fake.sentence(nb_words=3).strip('.')} of {fake.word().capitalize()}"
+                    book_id = create_book(book_title)
 
-        # Verify the book is assigned to the student
-        book_data = select_book_by_id(book_id)
-        assert (
-            book_data["taken_by_student_id"] == student_id
-        ), "Book should be assigned to the student"
-        logging.debug(
-            f"PASSED: Book '{book_id}' is assigned to the student '{student_id}'"
-        )
+                    # Assign the book to the student
+                    assign_student_to_book(student_id, book_id)
 
-    # Create multiple subjects
-    subject_ids = [create_subject(title) for title in subject_titles]
+                    # Verify the book is assigned to the student
+                    book_data = select_book_by_id(book_id)
+                    assert (
+                        book_data["taken_by_student_id"] == student_id
+                    ), "Book should be assigned to the student"
+                    logging.debug(
+                        f"PASSED: Book '{book_id}' is assigned to the student '{student_id}'"
+                    )
 
-    # Create two lessons for each subject and add marks for the student
-    for subject_id, subject_title in zip(subject_ids, subject_titles):
-        for _ in range(LESSONS_PER_SUBJECT):
-            # Generate random data
-            lesson_title = Random.lesson_title(subject_title)
-            mark_value = Random.mark()
+                # Create multiple subjects
+                subject_ids = [create_subject(title) for title in subject_titles]
 
-            # Create a lesson and add a mark to it
-            lesson_id = create_lesson(subject_id, lesson_title)
-            add_mark_to_lesson(lesson_id, student_id, mark_value)
+                # Create two lessons for each subject and add marks for the student
+                for subject_id, subject_title in zip(subject_ids, subject_titles):
+                    for _ in range(LESSONS_PER_SUBJECT):
+                        # Generate random data
+                        lesson_title = f"{fake.sentence(nb_words=3).strip('.')} of {fake.word().capitalize()}"
+                        mark_value = fake.random_int(min=1, max=10)
 
-    # Get all marks for the student
-    marks = get_all_marks_for_student(student_id)
-    assert (
-        len(marks) == LESSONS_PER_SUBJECT * SUBJECT_NUMBER
-    ), "There should be marks for all lessons"
-    logging.debug(f"PASSED: {len(marks)} marks are added to the student '{student_id}'")
+                        # Create a lesson and add a mark to it
+                        lesson_id = create_lesson(subject_id, lesson_title)
+                        add_mark_to_lesson(lesson_id, student_id, mark_value)
 
-    # Get all books for the student
-    books = get_all_books_for_student(student_id)
-    assert (
-        len(books) == BOOK_NUMBER
-    ), f"There should be only {BOOK_NUMBER} books for the student"
-    logging.debug(
-        f"PASSED: {len(books)} books is assigned to the student '{student_id}'"
-    )
+                # Get all marks for the student
+                marks = get_all_marks_for_student(student_id)
+                assert (
+                    len(marks) == LESSONS_PER_SUBJECT * SUBJECT_NUMBER
+                ), "There should be marks for all lessons"
+                logging.debug(
+                    f"PASSED: {len(marks)} marks are added to the student '{student_id}'"
+                )
 
-    # Get all details for the student
-    student_details = get_student_details(student_id)
-    assert student_details, "Student details should not be empty"
-    # logging.debug(f"Student full details: \n{student_details}")
-    # logging.debug("PASSED: Student details are retrieved successfully")
+                # Get all books for the student
+                books = get_all_books_for_student(student_id)
+                assert (
+                    len(books) == BOOK_NUMBER
+                ), f"There should be only {BOOK_NUMBER} books for the student"
+                logging.debug(
+                    f"PASSED: {len(books)} books is assigned to the student '{student_id}'"
+                )
 
-    # Organize the student details and print them
-    organized_student_details = utils.organize_student_details(student_details)
-    logging.info(
-        f"Organized student details: \n{json.dumps(organized_student_details, indent=4)}"
-    )
+                # Get all details for the student
+                student_details = get_student_details(student_id)
+                assert student_details, "Student details should not be empty"
+                # logging.debug(f"Student full details: \n{student_details}")
+                # logging.debug("PASSED: Student details are retrieved successfully")
 
-    # Commit the changes
-    commit_changes()
+                # Organize the student details and print them
+                organized_student_details = utils.organize_student_details(
+                    student_details
+                )
+                logging.info(
+                    f"Organized student details: \n{json.dumps(organized_student_details, indent=4)}"
+                )
 
-    # Close the database connection
-    close_connection()
+                # Commit the changes
+                commit_changes()
+
+            case "16":
+                # Check CSV data in the database
+                csv_file_path = os.path.join(
+                    os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+                    "eugene_okulik",
+                    "Lesson_16",
+                    "hw_data",
+                    "data.csv",
+                )
+                check_csv_data_in_db(csv_file_path)
+
+    except Exception as e:
+        logging.error(f"An error occurred: {e}")
+        db.rollback()
+        raise
+
+    finally:
+        # Close the database connection
+        close_connection()
 
 
 if __name__ == "__main__":
