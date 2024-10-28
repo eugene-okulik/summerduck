@@ -9,6 +9,9 @@ DEFAULT_NAME = "User"
 NON_EXISTING_ID = 123
 
 
+# --------------------- Fixtures ---------------------
+
+
 @pytest.fixture()
 def api_client():
     return ApiClient()
@@ -25,6 +28,9 @@ def cleanup_test_objects():
     response = api_client.get_all_objects()
     assert len(response.json()["data"]) == 1
     logging.info("All test objects cleaned up successfully")
+
+
+# --------------------- Helper functions ---------------------
 
 
 def generate_fake_data():
@@ -46,6 +52,9 @@ def create_object(
     response = api_client.post_object(data=data, name=name)
     assert response.status_code == 200, "Failed to create object"
     return response.json()["id"]
+
+
+# --------------------- Test Class---------------------
 
 
 @pytest.mark.usefixtures("cleanup_test_objects")

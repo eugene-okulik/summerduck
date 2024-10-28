@@ -115,7 +115,7 @@ def apply_decorators_to_methods(cls):
     return cls
 
 
-# ------------------------ API ------------------------
+# ------------------------ API Class ------------------------
 
 
 @apply_decorators_to_methods
