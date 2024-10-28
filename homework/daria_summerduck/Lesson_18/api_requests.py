@@ -37,39 +37,12 @@ You need to test all the functions listed in the specification
 """
 
 import requests
-import random
 import logging
 import json
 import functools
 from faker import Faker
-from datetime import date
 
-
-# ------------------------ Helper functions ------------------------
-
-
-def get_random_object_id_from_response_json(response):
-    response = response.json()
-
-    # Extract the list of objects
-    objects = response["data"]
-
-    # Randomly select an object
-    random_object = random.choice(objects)
-
-    # Retrieve the id of the selected object
-    return random_object["id"]
-
-
-def generate_fake_data():
-    # Generate fake data
-    fake = Faker()
-    data = fake.simple_profile()
-    if isinstance(data.get("birthdate"), date):
-        data["birthdate"] = data["birthdate"].isoformat()
-
-    return data
-
+BASE_URL = "http://167.172.172.115:52353"
 
 # ------------------------ Decorators ------------------------
 
@@ -121,7 +94,11 @@ def apply_decorators_to_methods(cls):
     """
     for attr_name, attr_value in cls.__dict__.items():
         if callable(attr_value) and attr_name.startswith(("delete_")):
-            setattr(cls, attr_name, status_logging(attr_value))
+            setattr(
+                cls,
+                attr_name,
+                status_logging(attr_value),
+            )
         if callable(attr_value) and attr_name.startswith(
             (
                 "get_",
@@ -139,9 +116,6 @@ def apply_decorators_to_methods(cls):
 
 
 # ------------------------ API ------------------------
-
-
-BASE_URL = "http://167.172.172.115:52353"
 
 
 @apply_decorators_to_methods

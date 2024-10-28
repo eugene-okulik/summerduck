@@ -1,10 +1,8 @@
 import logging
 import pytest
-from homework.daria_summerduck.Lesson_18.api_requests import (
-    ApiClient,
-    get_random_object_id_from_response_json,
-    generate_fake_data,
-)
+from faker import Faker
+from datetime import date
+from homework.daria_summerduck.Lesson_18.api_requests import ApiClient
 
 # Constants for tests
 DEFAULT_NAME = "User"
@@ -27,6 +25,16 @@ def cleanup_test_objects():
     response = api_client.get_all_objects()
     assert len(response.json()["data"]) == 1
     logging.info("All test objects cleaned up successfully")
+
+
+def generate_fake_data():
+    # Generate fake data
+    fake = Faker()
+    data = fake.simple_profile()
+    if isinstance(data.get("birthdate"), date):
+        data["birthdate"] = data["birthdate"].isoformat()
+
+    return data
 
 
 def create_object(
