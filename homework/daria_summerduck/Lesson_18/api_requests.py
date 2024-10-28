@@ -47,13 +47,6 @@ from datetime import date
 
 # ------------------------ Helper functions ------------------------
 
-# Configure logging
-logging.basicConfig(
-    level=logging.CRITICAL,  # DEBUG, INFO, WARNING, ERROR, CRITICAL
-    format="%(levelname)s - %(message)s",  # Log format
-)
-logging.getLogger("faker").setLevel(logging.WARNING)
-
 
 def get_random_object_id_from_response_json(response):
     response = response.json()

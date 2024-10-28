@@ -6,43 +6,43 @@ from homework.daria_summerduck.Lesson_18.api_requests import (
     generate_fake_data,
 )
 
-# Configure logging
-logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")
-logging.getLogger("faker").setLevel(logging.CRITICAL)
-
 # Constants for tests
 DEFAULT_NAME = "User"
 NON_EXISTING_ID = 123
 
 
-@pytest.fixture
+@pytest.fixture()
 def api_client():
     return ApiClient()
 
 
 @pytest.fixture(scope="class")
-def cleanup_objects(api_client):
-    # Cleanup fixture to remove objects created in tests after each run
+def cleanup_test_objects():
+    api_client = ApiClient()
     yield
     response = api_client.get_all_objects()
     object_ids = [obj["id"] for obj in response.json()["data"]]
     for object_id in object_ids[1:]:
         api_client.delete_object_by_id(object_id)
+    response = api_client.get_all_objects()
+    assert len(response.json()["data"]) == 1
     logging.info("All test objects cleaned up successfully")
 
 
 def create_object(
-    api_client,
     data=None,
     name=DEFAULT_NAME,
 ):
+    api_client = ApiClient()
     data = data or generate_fake_data()
     response = api_client.post_object(data=data, name=name)
     assert response.status_code == 200, "Failed to create object"
     return response.json()["id"]
 
 
+@pytest.mark.usefixtures("cleanup_test_objects")
 class TestApiRequests:
+
     def test_get_all_objects(
         self,
         api_client,
