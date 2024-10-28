@@ -49,11 +49,8 @@ from datetime import date
 
 # Configure logging
 logging.basicConfig(
-    level=logging.DEBUG,  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+    level=logging.CRITICAL,  # DEBUG, INFO, WARNING, ERROR, CRITICAL
     format="%(levelname)s - %(message)s",  # Log format
-    handlers=[
-        logging.StreamHandler(),  # Output logs to the console
-    ],
 )
 logging.getLogger("faker").setLevel(logging.WARNING)
 
@@ -140,7 +137,11 @@ def apply_decorators_to_methods(cls):
                 "patch_",
             )
         ):
-            setattr(cls, attr_name, response_logging(status_logging(attr_value)))
+            setattr(
+                cls,
+                attr_name,
+                response_logging(status_logging(attr_value)),
+            )
     return cls
 
 
@@ -243,8 +244,6 @@ class ApiClient:
             body["name"] = name
         if data:
             body["data"] = data
-        if not body:
-            raise ValueError("At least one of 'name' or 'data' must be provided")
 
         headers = {"Content-Type": "application/json"}
         return requests.patch(
@@ -259,55 +258,3 @@ class ApiClient:
         Delete an object by id
         """
         return requests.delete(f"{self.BASE_URL}/object/{id}")
-
-
-# ------------------------ Main function ------------------------
-
-
-# def main():
-#     api_client = ApiClient()
-
-#     # Get all objects
-#     all_objects = api_client.get_all_objects()
-
-
-#     # Get a random object by id from the response json
-#     object_id = get_random_object_id_from_response_json(all_objects)
-
-#     # Get the object by id
-#     api_client.get_object_by_id(object_id)
-
-#     # Post an object with fake data
-#     data = generate_fake_data()
-#     post_object_response = api_client.post_object(data)
-#     new_object_id = post_object_response.json()["id"]
-
-#     # Delete the object by id
-#     api_client.delete_object_by_id(new_object_id)
-
-#     # Post an object with fake data
-#     data = generate_fake_data()
-#     post_object_response = api_client.post_object(data)
-#     new_object_id = post_object_response.json()["id"]
-
-#     # Put an object by id
-#     data = generate_fake_data()
-#     api_client.put_object_by_id(new_object_id, data)
-
-#     # Delete the object by id
-#     api_client.delete_object_by_id(new_object_id)
-
-#     # Post an object with fake data
-#     data = generate_fake_data()
-#     post_object_response = api_client.post_object(data)
-#     new_object_id = post_object_response.json()["id"]
-
-#     # Patch an object by id
-#     api_client.patch_object_by_id(new_object_id)
-
-#     # Delete the object by id
-#     api_client.delete_object_by_id(new_object_id)
-
-
-# if __name__ == "__main__":
-#     main()

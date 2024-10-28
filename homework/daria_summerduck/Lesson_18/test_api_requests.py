@@ -1,7 +1,5 @@
 import logging
-import json
-import requests
-
+import pytest
 from homework.daria_summerduck.Lesson_18.api_requests import (
     ApiClient,
     get_random_object_id_from_response_json,
@@ -9,291 +7,176 @@ from homework.daria_summerduck.Lesson_18.api_requests import (
 )
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO,  # DEBUG, INFO, WARNING, ERROR, CRITICAL
-    format="%(levelname)s - %(message)s",  # Log format
-    handlers=[
-        logging.StreamHandler(),  # Output logs to the console
-    ],
-)
-logging.getLogger("faker").setLevel(logging.WARNING)
+logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")
+logging.getLogger("faker").setLevel(logging.CRITICAL)
+
+# Constants for tests
+DEFAULT_NAME = "User"
+NON_EXISTING_ID = 123
 
 
-def test_get_all_objects():
-    api_client = ApiClient()
+@pytest.fixture
+def api_client():
+    return ApiClient()
+
+
+@pytest.fixture(scope="class")
+def cleanup_objects(api_client):
+    # Cleanup fixture to remove objects created in tests after each run
+    yield
     response = api_client.get_all_objects()
-    assert response.status_code == 200
-    assert isinstance(response.json()["data"], list)
-    logging.info("PASSED: All objects retrieved successfully")
+    object_ids = [obj["id"] for obj in response.json()["data"]]
+    for object_id in object_ids[1:]:
+        api_client.delete_object_by_id(object_id)
+    logging.info("All test objects cleaned up successfully")
 
 
-def test_get_object_by_id():
-    api_client = ApiClient()
-    response = api_client.get_all_objects()
-    object_id = get_random_object_id_from_response_json(response)
-    response = api_client.get_object_by_id(object_id)
-    assert response.status_code == 200
-    assert response.json()["id"] == object_id
-    logging.info("PASSED: Object retrieved by id successfully")
+def create_object(
+    api_client,
+    data=None,
+    name=DEFAULT_NAME,
+):
+    data = data or generate_fake_data()
+    response = api_client.post_object(data=data, name=name)
+    assert response.status_code == 200, "Failed to create object"
+    return response.json()["id"]
 
 
-def test_get_object_by_not_existing_id():
-    api_client = ApiClient()
-    response = api_client.get_object_by_id(123)
-    assert response.status_code == 404
-    logging.info("PASSED: Object not found by not existing id")
+class TestApiRequests:
+    def test_get_all_objects(
+        self,
+        api_client,
+    ):
+        response = api_client.get_all_objects()
+        assert response.status_code == 200
+        assert isinstance(response.json()["data"], list)
+        logging.info("PASSED: All objects retrieved successfully")
 
-
-def test_create_object():
-    data = generate_fake_data()
-    name = "User"
-    api_client = ApiClient()
-
-    # Create an object
-    post_object_response = api_client.post_object(
-        data=data,
-        name=name,
+    @pytest.mark.parametrize(
+        "description, object_id, expected_status_code",
+        [
+            ("Existing object", "", 200),
+            ("Not existing object", NON_EXISTING_ID, 404),
+        ],
     )
-    assert post_object_response.status_code == 200
-    logging.info("PASSED: Object created successfully")
+    def test_get_object_by_id(
+        self,
+        api_client,
+        description,
+        object_id,
+        expected_status_code,
+    ):
+        if description == "Existing object":
+            object_id = create_object()
+        response = api_client.get_object_by_id(object_id)
+        assert (
+            response.status_code == expected_status_code
+        ), f"Expected {expected_status_code} for {description}, but got {response.status_code}"
 
-
-def test_create_object_with_empty_data():
-    data = {}
-    name = "User"
-    api_client = ApiClient()
-
-    # Create an object
-    post_object_response = api_client.post_object(
-        data=data,
-        name=name,
+    @pytest.mark.parametrize(
+        "description, data, name, expected_status_code",
+        [
+            ("empty data and name", {}, "", 400),
+            ("empty data", {}, "User", 400),
+            ("empty name", "fake_data", "", 400),
+            ("valid data and name", "fake_data", "User", 200),
+        ],
     )
-    try:
-        assert post_object_response.status_code == 400
-    except Exception as error:
-        if post_object_response.status_code == 200:
-            logging.warning("Object created with empty data")
+    def test_post_object(
+        self,
+        api_client,
+        description,
+        data,
+        name,
+        expected_status_code,
+    ):
+        data = generate_fake_data() if data == "fake_data" else data
 
-        if post_object_response:
-            response = api_client.get_object_by_id(post_object_response.json()["id"])
-            logging.warning(f"Object: {json.dumps(response.json(), indent=4)}")
+        # Create an object
+        post_object_response = api_client.post_object(
+            data=data,
+            name=name,
+        )
+        assert post_object_response.status_code == expected_status_code, (
+            f"Expected {expected_status_code} for creating object with {description},"
+            f" but got {post_object_response.status_code}"
+        )
+        logging.info(f"PASSED: {description} Object created successfully")
 
-        raise requests.exceptions.HTTPError("Object created with empty data") from error
-
-    logging.info("PASSED: Object not created with empty data")
-
-
-def test_create_object_with_empty_name():
-    data = generate_fake_data()
-    name = ""
-    api_client = ApiClient()
-
-    # Create an object
-    post_object_response = api_client.post_object(
-        data=data,
-        name=name,
+    @pytest.mark.parametrize(
+        "description, object_id, data, name, expected_status_code",
+        [
+            ("empty data and name", "create_object", {}, "", 400),
+            ("empty data", "create_object", {}, "User", 400),
+            ("empty name", "create_object", "fake_data", "", 400),
+            ("valid data and name", "create_object", "fake_data", "User", 200),
+            ("not existing id", NON_EXISTING_ID, "fake_data", "User", 404),
+        ],
     )
-    try:
-        assert post_object_response.status_code == 400
-    except Exception as error:
-        if post_object_response.status_code == 200:
-            logging.warning("Object created with empty name")
+    def test_put_object_by_id(
+        self,
+        api_client,
+        description,
+        object_id,
+        data,
+        name,
+        expected_status_code,
+    ):
+        # Get object_id if it is not provided
+        object_id = create_object() if object_id == "create_object" else object_id
+        data = generate_fake_data() if data == "fake_data" else data
 
-        if post_object_response:
-            response = api_client.get_object_by_id(post_object_response.json()["id"])
-            logging.warning(f"Object: {json.dumps(response.json(), indent=4)}")
+        put_object_response = api_client.put_object_by_id(
+            id=object_id,
+            data=data,
+            name=name,
+        )
+        assert put_object_response.status_code == expected_status_code, (
+            f"Expected {expected_status_code} for updating object with {description},"
+            f" but got {put_object_response.status_code}"
+        )
+        logging.info(f"PASSED: {description} Object updated successfully")
 
-        raise requests.exceptions.HTTPError("Object created with empty data") from error
-
-    logging.info("PASSED: Object not created with empty name")
-
-
-def test_update_object():
-    data = generate_fake_data()
-    name = "User"
-    api_client = ApiClient()
-
-    # Create an object
-    post_object_response = api_client.post_object(
-        data=data,
-        name=name,
+    @pytest.mark.parametrize(
+        "description, object_id, data, name, expected_status_code",
+        [
+            ("valid data and name", "create_object", "fake_data", "Patched User", 200),
+            ("valid data and empty name", "create_object", "fake_data", "", 200),
+            ("empty data and valid name", "create_object", {}, "Patched User", 200),
+            ("empty data and empty name", "create_object", {}, "", 400),
+        ],
     )
-    object_id = post_object_response.json()["id"]
+    def test_patch_object_by_id(
+        self,
+        api_client,
+        description,
+        object_id,
+        data,
+        name,
+        expected_status_code,
+    ):
+        # Create an object
+        object_id = create_object()
 
-    # Update the object
-    data = generate_fake_data()
-    name = "Updated User"
-    put_object_response = api_client.put_object_by_id(
-        id=object_id,
-        data=data,
-        name=name,
-    )
-    assert put_object_response.status_code == 200
-    logging.info("PASSED: Object updated successfully")
+        data = generate_fake_data() if data == "fake_data" else data
 
+        patch_object_response = api_client.patch_object_by_id(
+            id=object_id,
+            data=data,
+            name=name,
+        )
+        assert patch_object_response.status_code == expected_status_code, (
+            f"Expected {expected_status_code} for patching object with {description},"
+            f" but got {patch_object_response.status_code}"
+        )
 
-def test_update_object_with_empty_data():
-    data = generate_fake_data()
-    name = "User"
-    api_client = ApiClient()
-
-    # Create an object
-    post_object_response = api_client.post_object(
-        data=data,
-        name=name,
-    )
-    object_id = post_object_response.json()["id"]
-
-    # Update the object
-    data = {}
-    name = "Updated User"
-    put_object_response = api_client.put_object_by_id(
-        id=object_id,
-        data=data,
-        name=name,
-    )
-    try:
-        assert put_object_response.status_code == 400
-    except Exception as error:
-        if put_object_response.status_code == 200:
-            logging.warning("Object updated with empty data")
-
-        if put_object_response:
-            response = api_client.get_object_by_id(put_object_response.json()["id"])
-            logging.warning(f"Object: {json.dumps(response.json(), indent=4)}")
-
-        raise requests.exceptions.HTTPError("Object updated with empty data") from error
-
-    logging.info("PASSED: Object not updated with empty data")
-
-
-def test_update_object_with_empty_name():
-    data = generate_fake_data()
-    name = "User"
-    api_client = ApiClient()
-
-    # Create an object
-    post_object_response = api_client.post_object(
-        data=data,
-        name=name,
-    )
-    object_id = post_object_response.json()["id"]
-
-    # Update the object
-    data = generate_fake_data()
-    name = ""
-    put_object_response = api_client.put_object_by_id(
-        id=object_id,
-        data=data,
-        name=name,
-    )
-    try:
-        assert put_object_response.status_code == 400
-    except Exception as error:
-        if put_object_response.status_code == 200:
-            logging.warning("Object updated with empty name")
-
-        if put_object_response:
-            response = api_client.get_object_by_id(put_object_response.json()["id"])
-            logging.warning(f"Object: {json.dumps(response.json(), indent=4)}")
-
-        raise requests.exceptions.HTTPError("Object updated with empty name") from error
-
-    logging.info("PASSED: Object not updated with empty name")
-
-
-def test_update_object_with_not_existing_id():
-    data = generate_fake_data()
-    name = "Updated User"
-    api_client = ApiClient()
-    put_object_response = api_client.put_object_by_id(
-        id=123,
-        data=data,
-        name=name,
-    )
-
-    assert put_object_response.status_code == 404
-    logging.info("PASSED: Object not updated with not existing id")
-
-
-def test_patch_object_by_id():
-    data = generate_fake_data()
-    name = "User"
-    api_client = ApiClient()
-
-    # Create an object
-    post_object_response = api_client.post_object(
-        data=data,
-        name=name,
-    )
-    object_id = post_object_response.json()["id"]
-
-    # Patch the object
-    data = generate_fake_data()
-    name = "Patched User"
-    patch_object_response = api_client.patch_object_by_id(
-        id=object_id,
-        data=data,
-        name=name,
-    )
-    assert patch_object_response.status_code == 200
-
-
-def test_patch_object_name_by_id():
-    data = generate_fake_data()
-    name = "User"
-    api_client = ApiClient()
-
-    # Create an object
-    post_object_response = api_client.post_object(
-        data=data,
-        name=name,
-    )
-    object_id = post_object_response.json()["id"]
-
-    # Patch the object
-    name = "Patched User"
-    patch_object_response = api_client.patch_object_by_id(
-        id=object_id,
-        name=name,
-    )
-    assert patch_object_response.status_code == 200
-
-
-def test_patch_object_data_by_id():
-    data = generate_fake_data()
-    name = "User"
-    api_client = ApiClient()
-
-    # Create an object
-    post_object_response = api_client.post_object(
-        data=data,
-        name=name,
-    )
-    object_id = post_object_response.json()["id"]
-
-    # Patch the object
-    data = generate_fake_data()
-    patch_object_response = api_client.patch_object_by_id(
-        id=object_id,
-        data=data,
-    )
-    assert patch_object_response.status_code == 200
-
-
-def test_delete_object():
-    data = generate_fake_data()
-    name = "User"
-    api_client = ApiClient()
-
-    # Create an object
-    post_object_response = api_client.post_object(
-        data=data,
-        name=name,
-    )
-    object_id = post_object_response.json()["id"]
-
-    # Delete the object
-    delete_object_response = api_client.delete_object_by_id(object_id)
-    assert delete_object_response.status_code == 200
-    logging.info("PASSED: Object deleted successfully")
+    def test_delete_object(
+        self,
+        api_client,
+    ):
+        # Create an object
+        object_id = create_object()
+        # Delete the object
+        delete_object_response = api_client.delete_object_by_id(object_id)
+        assert delete_object_response.status_code == 200
+        logging.info("PASSED: Object deleted successfully")
