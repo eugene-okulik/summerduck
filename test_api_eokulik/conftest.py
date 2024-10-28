@@ -1,6 +1,6 @@
 import pytest
-from endpoints.create_post import CreatePost
-from endpoints.update_post import UpdatePost
+from .endpoints.create_post import CreatePost
+from .endpoints.update_post import UpdatePost
 
 
 @pytest.fixture()
