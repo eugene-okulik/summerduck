@@ -27,6 +27,17 @@ def log_test_details(func):
     return wrapper
 
 
+def apply_decorator_to_all_tests(decorator):
+    def class_decorator(cls):
+        for attr in dir(cls):
+            if callable(getattr(cls, attr)) and attr.startswith("test_"):
+                setattr(cls, attr, decorator(getattr(cls, attr)))
+        return cls
+
+    return class_decorator
+
+
+@apply_decorator_to_all_tests(log_test_details)
 @pytest.mark.usefixtures("start_testing")
 @pytest.mark.usefixtures("before_test")
 class TestApiRequests:
@@ -44,7 +55,6 @@ class TestApiRequests:
             response.json()["data"], list
         ), f"Expected 'data' to be a list, but got {type(response.json()['data'])}"
 
-    @log_test_details
     @pytest.mark.parametrize(
         "description, object_id, expected_status_code",
         [
@@ -118,7 +128,7 @@ class TestApiRequests:
     def test_put_object_by_id(
         self,
         api_client,
-        create_object_id,
+        create_and_cleanup_object,
         fake_data,
         description,
         object_id,
@@ -127,7 +137,9 @@ class TestApiRequests:
         expected_status_code,
     ):
         # Get object_id if it is not provided
-        object_id = create_object_id if object_id == "create_object" else object_id
+        object_id = (
+            create_and_cleanup_object if object_id == "create_object" else object_id
+        )
         data = fake_data if data == "fake_data" else data
 
         put_object_response = api_client.put_object_by_id(
@@ -162,7 +174,7 @@ class TestApiRequests:
     def test_patch_object_by_id(
         self,
         api_client,
-        create_object_id,
+        create_and_cleanup_object,
         fake_data,
         description,
         object_id,
@@ -171,7 +183,9 @@ class TestApiRequests:
         expected_status_code,
     ):
         # Create an object
-        object_id = create_object_id if object_id == "create_object" else object_id
+        object_id = (
+            create_and_cleanup_object if object_id == "create_object" else object_id
+        )
 
         data = fake_data if data == "fake_data" else data
 
@@ -188,10 +202,10 @@ class TestApiRequests:
     def test_delete_object(
         self,
         api_client,
-        create_object_id,
+        created_object,
     ):
         # Delete the object
-        delete_object_response = api_client.delete_object_by_id(create_object_id)
+        delete_object_response = api_client.delete_object_by_id(created_object)
         assert (
             delete_object_response.status_code == 200
         ), f"Expected 200 for deleting object, but got {delete_object_response.status_code}"

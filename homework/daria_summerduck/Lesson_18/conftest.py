@@ -54,3 +54,16 @@ def create_and_cleanup_object(fake_data, data=None, name="User"):
     logging.info(
         f"Test objects {created_object_id} created by the test have been cleaned up successfully"
     )
+
+
+@pytest.fixture()
+def created_object(
+    fake_data,
+    data=None,
+    name="User",
+):
+    api_client = ApiClient()
+    data = data or fake_data
+    response = api_client.post_object(data=data, name=name)
+    assert response.status_code == 200, "Failed to create object"
+    return response.json()["id"]
