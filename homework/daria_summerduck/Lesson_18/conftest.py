@@ -66,5 +66,5 @@ def created_object(
     data = data or fake_data
     response = api_client.post_object(data=data, name=name)
     assert response.status_code == 200, "Failed to create object"
-    logging.info(f"Test object {response.json()["id"]} created successfully")
+    logging.info(f"Test object {response.json()['id']} created successfully")
     return response.json()["id"]
