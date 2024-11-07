@@ -11,19 +11,6 @@ def api_client():
 
 
 @pytest.fixture(scope="class")
-def cleanup_test_objects():
-    api_client = ApiClient()
-    yield
-    response = api_client.get_all_objects()
-    object_ids = [obj["id"] for obj in response.json()["data"]]
-    for object_id in object_ids[1:]:
-        api_client.delete_object_by_id(object_id)
-    response = api_client.get_all_objects()
-    assert len(response.json()["data"]) == 1
-    logging.info("All test objects cleaned up successfully")
-
-
-@pytest.fixture(scope="class")
 def start_testing():
     logging.info("Start testing")
     yield
@@ -47,14 +34,57 @@ def fake_data():
     return data
 
 
-@pytest.fixture()
-def api_object(
-    fake_data,
-    data=None,
-    name="User",
-):
+# @pytest.fixture(scope="function")
+# def cleanup_test_object():
+#     api_client = ApiClient()
+#     created_object_ids = []
+#     yield created_object_ids
+#     for object_id in created_object_ids:
+#         api_client.delete_object_by_id(object_id)
+#     logging.info(
+#         f"Test objects {created_object_ids} created by the test have been cleaned up successfully"
+#     )
+
+
+# @pytest.fixture()
+# def create_object_id(
+#     cleanup_test_object,
+#     fake_data,
+#     data=None,
+#     name="User",
+# ):
+#     api_client = ApiClient()
+#     data = data or fake_data
+#     response = api_client.post_object(data=data, name=name)
+#     assert response.status_code == 200, "Failed to create object"
+#     object_id = response.json()["id"]
+#     cleanup_test_object.append(object_id)
+#     logging.info(f"Test object {object_id} created successfully")
+#     return object_id
+
+# import logging
+# import pytest
+
+
+@pytest.fixture(scope="function")
+def create_and_cleanup_object(fake_data, data=None, name="User"):
     api_client = ApiClient()
+    created_object_ids = []
     data = data or fake_data
+
+    # Create the object
     response = api_client.post_object(data=data, name=name)
     assert response.status_code == 200, "Failed to create object"
-    return response.json()
+    created_object_id = response.json()["id"]
+    created_object_ids.append(created_object_id)
+    logging.info(f"Test object {created_object_id} created successfully")
+
+    # Provide the created object ID to the test
+    yield created_object_id
+
+    # Cleanup: Delete all created objects
+    for obj_id in created_object_ids:
+        api_client.delete_object_by_id(obj_id)
+    logging.info(
+        f"Test objects {created_object_ids} created by the test have been cleaned up successfully"
+    )
