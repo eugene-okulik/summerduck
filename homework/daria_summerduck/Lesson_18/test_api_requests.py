@@ -1,73 +1,59 @@
 import logging
 import pytest
-from faker import Faker
-from datetime import date
-from homework.daria_summerduck.Lesson_18.api_requests import ApiClient
+import functools
 
 # Constants for tests
-DEFAULT_NAME = "User"
-NON_EXISTING_ID = 123
+NON_EXISTING_ID = 123456789
 
 
-# --------------------- Fixtures ---------------------
+# ------------------------ Decorators ------------------------
+def log_test_details(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        test_name = func.__name__
+        logging.info(f"STARTING TEST: {test_name}")
+        logging.info(f"PARAMETERS: {args}, {kwargs}")
+        try:
+            result = func(*args, **kwargs)
+            logging.info(f"PASSED: {test_name}")
+            return result
+        except AssertionError as e:
+            logging.error(f"FAILED: {test_name} - {str(e)}")
+            raise
+        except Exception as e:
+            logging.error(f"ERROR: {test_name} - {str(e)}")
+            raise
+
+    return wrapper
 
 
-@pytest.fixture()
-def api_client():
-    return ApiClient()
+def apply_decorator_to_all_tests(decorator):
+    def class_decorator(cls):
+        for attr in dir(cls):
+            if callable(getattr(cls, attr)) and attr.startswith("test_"):
+                setattr(cls, attr, decorator(getattr(cls, attr)))
+        return cls
+
+    return class_decorator
 
 
-@pytest.fixture(scope="class")
-def cleanup_test_objects():
-    api_client = ApiClient()
-    yield
-    response = api_client.get_all_objects()
-    object_ids = [obj["id"] for obj in response.json()["data"]]
-    for object_id in object_ids[1:]:
-        api_client.delete_object_by_id(object_id)
-    response = api_client.get_all_objects()
-    assert len(response.json()["data"]) == 1
-    logging.info("All test objects cleaned up successfully")
-
-
-# --------------------- Helper functions ---------------------
-
-
-def generate_fake_data():
-    # Generate fake data
-    fake = Faker()
-    data = fake.simple_profile()
-    if isinstance(data.get("birthdate"), date):
-        data["birthdate"] = data["birthdate"].isoformat()
-
-    return data
-
-
-def create_object(
-    data=None,
-    name=DEFAULT_NAME,
-):
-    api_client = ApiClient()
-    data = data or generate_fake_data()
-    response = api_client.post_object(data=data, name=name)
-    assert response.status_code == 200, "Failed to create object"
-    return response.json()["id"]
-
-
-# --------------------- Test Class---------------------
-
-
-@pytest.mark.usefixtures("cleanup_test_objects")
+@apply_decorator_to_all_tests(log_test_details)
+@pytest.mark.usefixtures("start_testing")
+@pytest.mark.usefixtures("before_test")
 class TestApiRequests:
 
+    @pytest.mark.critical
     def test_get_all_objects(
         self,
         api_client,
     ):
         response = api_client.get_all_objects()
-        assert response.status_code == 200
-        assert isinstance(response.json()["data"], list)
-        logging.info("PASSED: All objects retrieved successfully")
+        assert (
+            response.status_code == 200
+        ), f"Expected status code 200 to get all objects, but got {response.status_code}"
+        assert isinstance(
+            response.json()["data"], list
+        ), f"Expected 'data' to be a list, but got {type(response.json()['data'])}"
 
     @pytest.mark.parametrize(
         "description, object_id, expected_status_code",
@@ -76,38 +62,45 @@ class TestApiRequests:
             ("Not existing object", NON_EXISTING_ID, 404),
         ],
     )
+    @pytest.mark.medium
     def test_get_object_by_id(
         self,
         api_client,
-        description,
+        create_and_cleanup_object,
         object_id,
+        description,
         expected_status_code,
     ):
         if description == "Existing object":
-            object_id = create_object()
+            object_id = create_and_cleanup_object
         response = api_client.get_object_by_id(object_id)
-        assert (
-            response.status_code == expected_status_code
-        ), f"Expected {expected_status_code} for {description}, but got {response.status_code}"
+        assert response.status_code == expected_status_code, (
+            f"Expected {expected_status_code} for {description}, "
+            f"but got {response.status_code}"
+        )
 
     @pytest.mark.parametrize(
         "description, data, name, expected_status_code",
         [
-            ("empty data and name", {}, "", 400),
-            ("empty data", {}, "User", 400),
-            ("empty name", "fake_data", "", 400),
-            ("valid data and name", "fake_data", "User", 200),
+            ("empty data and empty name", {}, "", 200),
+            ("empty data and valid name", {}, "User", 200),
+            ("valid data and empty name ", "fake_data", "", 200),
+            ("valid data and valid name", "fake_data", "User", 200),
+            ("invalid data and valid name", [], "User", 400),
+            ("valid data and invalid name", "fake_data", [], 400),
+            ("invalid data and invalid name", [], [], 400),
         ],
     )
     def test_post_object(
         self,
         api_client,
+        fake_data,
         description,
         data,
         name,
         expected_status_code,
     ):
-        data = generate_fake_data() if data == "fake_data" else data
+        data = fake_data if data == "fake_data" else data
 
         # Create an object
         post_object_response = api_client.post_object(
@@ -118,21 +111,25 @@ class TestApiRequests:
             f"Expected {expected_status_code} for creating object with {description},"
             f" but got {post_object_response.status_code}"
         )
-        logging.info(f"PASSED: {description} Object created successfully")
 
     @pytest.mark.parametrize(
         "description, object_id, data, name, expected_status_code",
         [
-            ("empty data and name", "create_object", {}, "", 400),
-            ("empty data", "create_object", {}, "User", 400),
-            ("empty name", "create_object", "fake_data", "", 400),
-            ("valid data and name", "create_object", "fake_data", "User", 200),
+            ("empty data and empty name", "create_object", {}, "", 200),
+            ("empty data and valid name", "create_object", {}, "User", 200),
+            ("valid data and empty name", "create_object", "fake_data", "", 200),
+            ("valid data and valid name", "create_object", "fake_data", "User", 200),
             ("not existing id", NON_EXISTING_ID, "fake_data", "User", 404),
+            ("invalid data and valid name", "create_object", [], "User", 400),
+            ("valid data and invalid name", "create_object", "fake_data", [], 400),
+            ("invalid data and invalid name", "create_object", [], [], 400),
         ],
     )
     def test_put_object_by_id(
         self,
         api_client,
+        create_and_cleanup_object,
+        fake_data,
         description,
         object_id,
         data,
@@ -140,8 +137,10 @@ class TestApiRequests:
         expected_status_code,
     ):
         # Get object_id if it is not provided
-        object_id = create_object() if object_id == "create_object" else object_id
-        data = generate_fake_data() if data == "fake_data" else data
+        object_id = (
+            create_and_cleanup_object if object_id == "create_object" else object_id
+        )
+        data = fake_data if data == "fake_data" else data
 
         put_object_response = api_client.put_object_by_id(
             id=object_id,
@@ -152,20 +151,31 @@ class TestApiRequests:
             f"Expected {expected_status_code} for updating object with {description},"
             f" but got {put_object_response.status_code}"
         )
-        logging.info(f"PASSED: {description} Object updated successfully")
 
     @pytest.mark.parametrize(
         "description, object_id, data, name, expected_status_code",
         [
-            ("valid data and name", "create_object", "fake_data", "Patched User", 200),
+            (
+                "valid data and valid name",
+                "create_object",
+                "fake_data",
+                "Patched User",
+                200,
+            ),
             ("valid data and empty name", "create_object", "fake_data", "", 200),
             ("empty data and valid name", "create_object", {}, "Patched User", 200),
             ("empty data and empty name", "create_object", {}, "", 400),
+            ("invalid data and valid name", "create_object", [], "Patched User", 200),
+            ("valid data and invalid name", "create_object", "fake_data", [], 200),
+            ("invalid data and invalid name", "create_object", [], [], 400),
+            ("not existing id", NON_EXISTING_ID, "fake_data", "User", 404),
         ],
     )
     def test_patch_object_by_id(
         self,
         api_client,
+        create_and_cleanup_object,
+        fake_data,
         description,
         object_id,
         data,
@@ -173,9 +183,11 @@ class TestApiRequests:
         expected_status_code,
     ):
         # Create an object
-        object_id = create_object()
+        object_id = (
+            create_and_cleanup_object if object_id == "create_object" else object_id
+        )
 
-        data = generate_fake_data() if data == "fake_data" else data
+        data = fake_data if data == "fake_data" else data
 
         patch_object_response = api_client.patch_object_by_id(
             id=object_id,
@@ -190,10 +202,10 @@ class TestApiRequests:
     def test_delete_object(
         self,
         api_client,
+        created_object,
     ):
-        # Create an object
-        object_id = create_object()
         # Delete the object
-        delete_object_response = api_client.delete_object_by_id(object_id)
-        assert delete_object_response.status_code == 200
-        logging.info("PASSED: Object deleted successfully")
+        delete_object_response = api_client.delete_object_by_id(created_object)
+        assert (
+            delete_object_response.status_code == 200
+        ), f"Expected 200 for deleting object, but got {delete_object_response.status_code}"
