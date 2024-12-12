@@ -1,6 +1,7 @@
 import logging
 import pytest
 import functools
+import allure
 
 # Constants for tests
 NON_EXISTING_ID = 123456789
@@ -40,9 +41,15 @@ def apply_decorator_to_all_tests(decorator):
 @apply_decorator_to_all_tests(log_test_details)
 @pytest.mark.usefixtures("start_testing")
 @pytest.mark.usefixtures("before_test")
+@allure.feature("API requests")
 class TestApiRequests:
 
     @pytest.mark.critical
+    @allure.testcase("QAP-001")
+    @allure.title("Get all objects")
+    @allure.tag("GET")
+    @allure.story("Retrieve all objects")
+    @allure.severity(allure.severity_level.CRITICAL)
     def test_get_all_objects(
         self,
         api_client,
@@ -63,6 +70,11 @@ class TestApiRequests:
         ],
     )
     @pytest.mark.medium
+    @allure.testcase("QAP-002")
+    @allure.title("Get object by ID")
+    @allure.tag("GET")
+    @allure.story("Retrieve object by ID")
+    @allure.severity(allure.severity_level.NORMAL)
     def test_get_object_by_id(
         self,
         api_client,
@@ -91,6 +103,11 @@ class TestApiRequests:
             ("invalid data and invalid name", [], [], 400),
         ],
     )
+    @allure.testcase("QAP-003")
+    @allure.title("Post object")
+    @allure.tag("POST")
+    @allure.story("Create a new object")
+    @allure.severity(allure.severity_level.CRITICAL)
     def test_post_object(
         self,
         api_client,
@@ -125,6 +142,11 @@ class TestApiRequests:
             ("invalid data and invalid name", "create_object", [], [], 400),
         ],
     )
+    @allure.testcase("QAP-004")
+    @allure.title("Put object by ID")
+    @allure.tag("PUT")
+    @allure.story("Update an object by ID")
+    @allure.severity(allure.severity_level.CRITICAL)
     def test_put_object_by_id(
         self,
         api_client,
@@ -171,6 +193,11 @@ class TestApiRequests:
             ("not existing id", NON_EXISTING_ID, "fake_data", "User", 404),
         ],
     )
+    @allure.testcase("QAP-005")
+    @allure.title("Patch object by ID")
+    @allure.tag("PATCH")
+    @allure.story("Partially update an object by ID")
+    @allure.severity(allure.severity_level.CRITICAL)
     def test_patch_object_by_id(
         self,
         api_client,
@@ -199,6 +226,11 @@ class TestApiRequests:
             f" but got {patch_object_response.status_code}"
         )
 
+    @allure.testcase("QAP-006")
+    @allure.title("Delete object by ID")
+    @allure.tag("DELETE")
+    @allure.story("Delete an object by ID")
+    @allure.severity(allure.severity_level.CRITICAL)
     def test_delete_object(
         self,
         api_client,
