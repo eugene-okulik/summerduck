@@ -3,7 +3,6 @@ import pytest
 from faker import Faker
 from datetime import date
 from homework.daria_summerduck.Lesson_18.api_requests import ApiClient
-import functools
 
 
 @pytest.fixture()
