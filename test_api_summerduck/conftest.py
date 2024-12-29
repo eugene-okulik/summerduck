@@ -3,7 +3,6 @@ import pytest
 from faker import Faker
 from datetime import date
 from homework.daria_summerduck.Lesson_18.api_requests import ApiClient
-import functools
 
 
 @pytest.fixture()
@@ -37,6 +36,8 @@ def fake_data():
 
 @pytest.fixture(scope="function")
 def create_and_cleanup_object(fake_data, data=None, name="User"):
+    non_existing_id = 123456789
+
     api_client = ApiClient()
     data = data or fake_data
 
