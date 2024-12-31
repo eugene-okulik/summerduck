@@ -42,7 +42,7 @@ def apply_decorator_to_all_tests(decorator):
 @pytest.mark.usefixtures("start_testing")
 @pytest.mark.usefixtures("before_test")
 @allure.feature("API requests")
-class TestApiRequests:
+class TestOutdatedApiRequests:
 
     @pytest.mark.critical
     @allure.testcase("QAP-001")
@@ -50,7 +50,7 @@ class TestApiRequests:
     @allure.tag("GET")
     @allure.story("Retrieve all objects")
     @allure.severity(allure.severity_level.CRITICAL)
-    def test_get_all_objects(
+    def test_outdated_get_all_objects_outdated(
         self,
         api_client,
     ):
@@ -75,7 +75,7 @@ class TestApiRequests:
     @allure.tag("GET")
     @allure.story("Retrieve object by ID")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_get_object_by_id(
+    def test_outdated_get_object_by_id(
         self,
         api_client,
         create_and_cleanup_object,
@@ -108,7 +108,7 @@ class TestApiRequests:
     @allure.tag("POST")
     @allure.story("Create a new object")
     @allure.severity(allure.severity_level.CRITICAL)
-    def test_post_object(
+    def test_outdated_post_object(
         self,
         api_client,
         fake_data,
@@ -147,7 +147,7 @@ class TestApiRequests:
     @allure.tag("PUT")
     @allure.story("Update an object by ID")
     @allure.severity(allure.severity_level.CRITICAL)
-    def test_put_object_by_id(
+    def test_outdated_put_object_by_id(
         self,
         api_client,
         create_and_cleanup_object,
@@ -198,7 +198,7 @@ class TestApiRequests:
     @allure.tag("PATCH")
     @allure.story("Partially update an object by ID")
     @allure.severity(allure.severity_level.CRITICAL)
-    def test_patch_object_by_id(
+    def test_outdated_patch_object_by_id(
         self,
         api_client,
         create_and_cleanup_object,
@@ -231,7 +231,7 @@ class TestApiRequests:
     @allure.tag("DELETE")
     @allure.story("Delete an object by ID")
     @allure.severity(allure.severity_level.CRITICAL)
-    def test_delete_object(
+    def test_outdated_delete_object(
         self,
         api_client,
         created_object,
