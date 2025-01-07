@@ -57,6 +57,7 @@ class ApiClient(Endpoint):
         Retrieve a list of all objects
         """
         self.response = requests.get(f"{self.url}/object")
+        print(self.response.json())
         return self.response
 
     @allure.step("Retrieve a single object by id")
