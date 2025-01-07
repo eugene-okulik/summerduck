@@ -1,11 +1,16 @@
-from locust import task, HttpUser
+from locust import task, HttpUser, between
 import random
 
 
-class MemeUser(HttpUser):
+class ApiUser(HttpUser):
     """
     HOST: http://167.172.172.115:52353
     """
+
+    wait_time = between(1, 5)  # wait time between requests
+
+    # def on_start(self):
+    #     self.client.post("/login", json={"username":"foo", "password":"bar"})
 
     @task(1)
     def get_all_objects(
