@@ -29,7 +29,12 @@ class TestApiRequests:
     @allure.tag("GET")
     @allure.story("Retrieve object by ID")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_get_object_by_id(self, api_client, object_id, expected_status_code):
+    def test_get_object_by_id(
+        self,
+        api_client,
+        object_id,
+        expected_status_code,
+    ):
         api_client.get_object_by_id(object_id)
         api_client.check_that_status_is(expected_status_code)
 
@@ -44,7 +49,13 @@ class TestApiRequests:
     @allure.tag("POST")
     @allure.story("Create a new object")
     @allure.severity(allure.severity_level.CRITICAL)
-    def test_post_object(self, api_client, data, name, expected_status_code):
+    def test_post_object(
+        self,
+        api_client,
+        data,
+        name,
+        expected_status_code,
+    ):
         api_client.post_object(name, data)
         api_client.check_that_status_is(expected_status_code)
 
@@ -59,7 +70,12 @@ class TestApiRequests:
     @allure.story("Update an object by ID")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_put_object_by_id(
-        self, api_client, object_id, data, name, expected_status_code
+        self,
+        api_client,
+        object_id,
+        data,
+        name,
+        expected_status_code,
     ):
         # Put object by id
         api_client.put_object_by_id(id=object_id, data=data, name=name)
@@ -76,7 +92,12 @@ class TestApiRequests:
     @allure.story("Partially update an object by ID")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_patch_object_by_id(
-        self, api_client, object_id, data, name, expected_status_code
+        self,
+        api_client,
+        object_id,
+        data,
+        name,
+        expected_status_code,
     ):
         api_client.patch_object_by_id(object_id, data, name)
         api_client.check_that_status_is(expected_status_code)
@@ -86,6 +107,10 @@ class TestApiRequests:
     @allure.tag("DELETE")
     @allure.story("Delete an object by ID")
     @allure.severity(allure.severity_level.CRITICAL)
-    def test_delete_object(self, api_client, created_object):
+    def test_delete_object(
+        self,
+        api_client,
+        created_object,
+    ):
         api_client.delete_object_by_id(created_object)
         api_client.check_that_status_is_200()
