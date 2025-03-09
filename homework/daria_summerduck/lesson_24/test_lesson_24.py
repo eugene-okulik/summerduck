@@ -7,6 +7,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+
 @pytest.fixture()
 def driver():
     chrome_driver = webdriver.Chrome()
@@ -71,6 +72,7 @@ def test_demoblaze_add_to_cart(driver):
         EC.presence_of_element_located((By.XPATH, '//td[contains(text(), "Samsung galaxy s6")]'))
     )
     assert product_in_cart.text == "Samsung galaxy s6", "Product not found in cart"
+
 
 def test_add_to_compare(driver):
     """
