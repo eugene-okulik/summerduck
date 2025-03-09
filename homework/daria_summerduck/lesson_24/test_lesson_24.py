@@ -39,38 +39,94 @@ def operation_system():
 
 
 def test_demoblaze_add_to_cart(driver):
+
+    # Set up an explicit wait
+    wait = WebDriverWait(driver, 10)
+
     # Go to page
     driver.get("https://www.demoblaze.com/index.html")
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '(//a[@href="prod.html?idp_=1"])[1]')))
+    wait.until(EC.presence_of_element_located((By.XPATH, '(//a[@href="prod.html?idp_=1"])[1]')))
 
     # Open new tab with product
     samsung = driver.find_element(By.XPATH, '(//a[@href="prod.html?idp_=1"])[1]')
     modifier_key = Keys.COMMAND if operation_system() == "darwin" else Keys.CONTROL
     samsung.send_keys(modifier_key + Keys.RETURN)
-    WebDriverWait(driver, 10).until(lambda d: len(d.window_handles) > 1)
+    wait.until(lambda d: len(d.window_handles) > 1)
     tabs = driver.window_handles
     driver.switch_to.window(tabs[1])
 
     # Add to cart
-    add_to_cart = WebDriverWait(driver, 10).until(
+    add_to_cart = wait.until(
         EC.element_to_be_clickable((By.XPATH, '//a[contains(text(), "Add to cart")]'))
     )
     add_to_cart.click()
-    WebDriverWait(driver, 10).until(EC.alert_is_present())
+    wait.until(EC.alert_is_present())
     alert = driver.switch_to.alert
     alert.accept()
 
     # Close new tab
     driver.close()
     driver.switch_to.window(tabs[0])
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, 'cartur')))
+    wait.until(EC.presence_of_element_located((By.ID, 'cartur')))
 
     # Open cart
     cart = driver.find_element(By.ID, 'cartur')
     cart.click()
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//td[contains(text(), "Samsung galaxy s6")]')))
+    wait.until(EC.presence_of_element_located((By.XPATH, '//td[contains(text(), "Samsung galaxy s6")]')))
 
     # Check product in cart
     product = driver.find_element(By.XPATH, '//td[contains(text(), "Samsung galaxy s6")]')
     assert product.text == "Samsung galaxy s6", "Product not in cart"
 
+
+def test_add_to_compare(driver):
+
+    # Set up an explicit wait
+    wait = WebDriverWait(driver, 10)
+
+    try:
+        # Open the target URL
+        driver.get("https://magento.softwaretestingboard.com/gear/bags.html")
+
+        # Wait until the first product is present on the page
+        first_product = wait.until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, "li.product-item"))
+        )
+
+        # Retrieve the product name for later verification (adjust the selector if needed)
+        product_name_element = first_product.find_element(By.CSS_SELECTOR, "a.product-item-link")
+        product_name = product_name_element.text
+
+        # Hover over the first product to reveal the additional options
+        actions = ActionChains(driver)
+        actions.move_to_element(first_product).perform()
+
+        # Wait until the "Add to Compare" button is clickable (using XPath matching its text)
+        add_to_cart_button = wait.until(
+            EC.element_to_be_clickable((By.XPATH, '//*[@title="Add to Compare"]'))
+        )
+
+        # Click the "Add to Compare" button
+        add_to_cart_button.click()
+
+        # Wait until the Compare Products section is present (adjust selector if needed)
+        compare_section_message = wait.until(
+            EC.presence_of_element_located((By.XPATH, '//div[@data-ui-id="message-success"]'))
+        )
+        compare_section_link = compare_section_message.find_element(By.XPATH, '//a[@href="https://magento.softwaretestingboard.com/catalog/product_compare/"]')
+        compare_section_link.click()
+        # Wait until the Compare Products section is updated with the product
+        wait.until(
+            EC.presence_of_element_located((By.XPATH, '//div[@class="table-wrapper comparison"]'))
+        )
+
+        # Verify that the product name appears in the Compare Products section
+        compare_section = driver.find_element(By.XPATH, '//div[@class="table-wrapper comparison"]')
+        assert product_name in compare_section.text, (
+            f"Expected product '{product_name}' not found in Compare Products section."
+        )
+        print("Test passed: Product added to Compare Products successfully.")
+
+    finally:
+        # Close the browser
+        driver.quit()
